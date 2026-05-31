@@ -1,7 +1,8 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, slate, blue } from '@/shared/constants/theme';
+import { Colors, blue, slate } from '@/shared/constants/theme';
 import { getTransactionsGroupees, type Transaction } from '../data/mock-transactions';
 
 interface Props {
@@ -10,6 +11,24 @@ interface Props {
   immatriculation: string;
 }
 
+// ─── Types filtres ─────────────────────────────────────────────────────────
+type Filtre = 'tous' | 'paye' | 'en_attente' | 'annule';
+
+const FILTRES: { key: Filtre; label: string }[] = [
+  { key: 'tous',        label: 'Tous' },
+  { key: 'paye',        label: 'Payé' },
+  { key: 'en_attente',  label: 'En attente' },
+  { key: 'annule',      label: 'Annulé' },
+];
+
+// ─── Statuts ───────────────────────────────────────────────────────────────
+const STATUT_CONFIG = {
+  paye:       { label: 'Payé',        bg: '#dcfce7', text: '#16a34a' },
+  en_attente: { label: 'En attente',  bg: '#fef9c3', text: '#ca8a04' },
+  annule:     { label: 'Annulé',      bg: '#fee2e2', text: '#dc2626' },
+};
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
 function formatMontant(n: number): string {
   return n.toLocaleString('fr-FR') + ' GNF';
 }
@@ -20,18 +39,37 @@ function formatDate(dateStr: string): string {
   return `${parseInt(day)} ${MOIS[parseInt(month) - 1]}`;
 }
 
-const STATUT_CONFIG = {
-  paye:       { label: 'Payé',        bg: '#dcfce7', text: '#16a34a' },
-  en_attente: { label: 'En attente',  bg: '#fef9c3', text: '#ca8a04' },
-  annule:     { label: 'Annulé',      bg: '#fee2e2', text: '#dc2626' },
-};
+// ─── Composants ───────────────────────────────────────────────────────────
+function FiltreChips({ actif, onChange }: { actif: Filtre; onChange: (f: Filtre) => void }) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.filtreList}>
+      {FILTRES.map((f) => {
+        const isActive = f.key === actif;
+        return (
+          <TouchableOpacity
+            key={f.key}
+            onPress={() => onChange(f.key)}
+            activeOpacity={0.7}
+            style={[styles.chip, isActive && styles.chipActive]}>
+            <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>
+              {f.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+}
 
 function TransactionRow({ tx }: { tx: Transaction }) {
   const statut = STATUT_CONFIG[tx.statut];
   return (
     <View style={styles.txRow}>
       <View style={styles.txLeft}>
-        <Text style={styles.txDescription}>{tx.reference}</Text>
+        <Text style={styles.txRef}>{tx.reference}</Text>
         <Text style={styles.txDate}>{formatDate(tx.date)}</Text>
       </View>
       <View style={styles.txRight}>
@@ -46,9 +84,30 @@ function TransactionRow({ tx }: { tx: Transaction }) {
   );
 }
 
+// ─── Écran ─────────────────────────────────────────────────────────────────
 export default function VehiculeDetailScreen({ id, nom, immatriculation }: Props) {
   const insets = useSafeAreaInsets();
-  const groupes = getTransactionsGroupees(id);
+  const [filtre, setFiltre] = useState<Filtre>('tous');
+
+  const tousGroupes = getTransactionsGroupees(id);
+
+  const groupesFiltres = useMemo(() => {
+    if (filtre === 'tous') return tousGroupes;
+
+    return tousGroupes
+      .map((g) => ({
+        ...g,
+        transactions: g.transactions.filter((t) => t.statut === filtre),
+      }))
+      .filter((g) => g.transactions.length > 0)
+      .map((g) => ({
+        ...g,
+        total: g.transactions.reduce((sum, t) => sum + t.montant, 0),
+      }));
+  }, [filtre, tousGroupes]);
+
+  const totalFiltré = groupesFiltres.reduce((sum, g) => sum + g.total, 0);
+  const nombreFiltré = groupesFiltres.reduce((n, g) => n + g.transactions.length, 0);
 
   return (
     <ScrollView
@@ -60,18 +119,29 @@ export default function VehiculeDetailScreen({ id, nom, immatriculation }: Props
       <View style={styles.resumeCard}>
         <Text style={styles.resumeNom}>{nom}</Text>
         <Text style={styles.resumeImmat}>{immatriculation}</Text>
+        <View style={styles.resumeStats}>
+          <View>
+            <Text style={styles.resumeStatLabel}>Total</Text>
+            <Text style={styles.resumeStatValue}>{formatMontant(totalFiltré)}</Text>
+          </View>
+          <View style={styles.resumeStatDivider} />
+          <View>
+            <Text style={styles.resumeStatLabel}>Commandes</Text>
+            <Text style={styles.resumeStatValue}>{nombreFiltré}</Text>
+          </View>
+        </View>
       </View>
 
+      {/* Filtres chips */}
+      <FiltreChips actif={filtre} onChange={setFiltre} />
+
       {/* Groupes par mois */}
-      {groupes.map((groupe) => (
+      {groupesFiltres.map((groupe) => (
         <View key={groupe.mois} style={styles.groupe}>
-          {/* En-tête du mois */}
           <View style={styles.moisHeader}>
             <Text style={styles.moisTitre}>{groupe.mois}</Text>
             <Text style={styles.moisTotal}>{formatMontant(groupe.total)}</Text>
           </View>
-
-          {/* Liste des transactions */}
           <View style={styles.txCard}>
             {groupe.transactions.map((tx, index) => (
               <View key={tx.id}>
@@ -85,22 +155,23 @@ export default function VehiculeDetailScreen({ id, nom, immatriculation }: Props
         </View>
       ))}
 
-      {groupes.length === 0 && (
+      {groupesFiltres.length === 0 && (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>Aucune transaction</Text>
+          <Text style={styles.emptyText}>Aucune commande pour ce filtre</Text>
         </View>
       )}
     </ScrollView>
   );
 }
 
+// ─── Styles ────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     backgroundColor: Colors.background,
   },
 
-  // ── Résumé ──────────────────────────────────────────────
+  // Résumé
   resumeCard: {
     backgroundColor: Colors.primary,
     paddingHorizontal: 20,
@@ -108,7 +179,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 16,
-    gap: 4,
+    gap: 12,
   },
   resumeNom: {
     color: '#fff',
@@ -119,10 +190,58 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.75)',
     fontSize: 14,
   },
+  resumeStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginTop: 4,
+  },
+  resumeStatLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+  },
+  resumeStatValue: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  resumeStatDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
 
-  // ── Groupe mois ─────────────────────────────────────────
+  // Filtres
+  filtreList: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: slate[200],
+  },
+  chipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  chipLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: slate[500],
+  },
+  chipLabelActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+
+  // Groupes
   groupe: {
-    marginTop: 24,
+    marginTop: 8,
     paddingHorizontal: 16,
     gap: 8,
   },
@@ -142,7 +261,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 
-  // ── Transaction card ─────────────────────────────────────
+  // Transactions
   txCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,
@@ -161,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 3,
   },
-  txDescription: {
+  txRef: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
@@ -197,13 +316,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
 
-  // ── Vide ────────────────────────────────────────────────
+  // Vide
   empty: {
     marginTop: 48,
     alignItems: 'center',
+    paddingHorizontal: 24,
   },
   emptyText: {
     fontSize: 15,
     color: slate[400],
+    textAlign: 'center',
   },
 });
