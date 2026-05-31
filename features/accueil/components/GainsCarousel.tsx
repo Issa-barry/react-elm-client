@@ -11,6 +11,7 @@ import {
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
+import { formatMontant } from '@/shared/utils/format';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const H_PADDING = 24;
@@ -50,16 +51,13 @@ const CARDS: CardData[] = [
   },
 ];
 
-function formatMontant(n: number): string {
-  return n.toLocaleString('fr-FR') + ' GNF';
-}
 
-// SVG identique au KpiWidgetCard.vue du monolithe (viewBox 900x600)
+// Dimensions explicites en pixels — nécessaire sur iOS (RN SVG ne résout pas % correctement)
 function WavePrimary() {
   return (
     <Svg
-      width="100%"
-      height="100%"
+      width={CARD_WIDTH}
+      height={CARD_HEIGHT}
       viewBox="0 0 900 600"
       preserveAspectRatio="none"
       style={StyleSheet.absoluteFill}>
