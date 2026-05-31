@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { Colors, slate } from '@/shared/constants/theme';
+import { formatMontant } from '@/shared/utils/format';
 import {
   MOCK_VEHICULES,
   STATUT_VEHICULE_CONFIG,
@@ -10,9 +11,6 @@ import {
   type Vehicule,
 } from '@/features/vehicule/data/mock-vehicules';
 
-function formatMontant(n: number): string {
-  return n.toLocaleString('fr-FR') + ' GNF';
-}
 
 function VehiculeCard({ vehicule }: Readonly<{ vehicule: Vehicule }>) {
   const statut = STATUT_VEHICULE_CONFIG[vehicule.statut];

@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
+import { formatMontant, formatDate } from '@/shared/utils/format';
 import {
   CATEGORIE_CONFIG,
   getFraisGroupes,
@@ -35,15 +36,6 @@ const STATUT_CONFIG = {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-function formatMontant(n: number): string {
-  return n.toLocaleString('fr-FR') + ' GNF';
-}
-
-function formatDate(dateStr: string): string {
-  const [, month, day] = dateStr.split('-');
-  const MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
-  return `${Number.parseInt(day)} ${MOIS[Number.parseInt(month) - 1]}`;
-}
 
 // ─── Composants ───────────────────────────────────────────────────────────
 const STATUT_MONTANT_COLOR: Record<StatutFrais, string> = {

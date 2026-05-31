@@ -11,6 +11,7 @@ import {
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
+import { formatMontant } from '@/shared/utils/format';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const H_PADDING = 24;
@@ -50,9 +51,6 @@ const CARDS: CardData[] = [
   },
 ];
 
-function formatMontant(n: number): string {
-  return n.toLocaleString('fr-FR') + ' GNF';
-}
 
 // Dimensions explicites en pixels — nécessaire sur iOS (RN SVG ne résout pas % correctement)
 function WavePrimary() {

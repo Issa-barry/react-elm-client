@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
+import { formatMontant, formatDate } from '@/shared/utils/format';
 import { getTransactionsGroupees, type Transaction } from '../data/mock-transactions';
 
 interface Props {
@@ -29,15 +30,6 @@ const STATUT_CONFIG = {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-function formatMontant(n: number): string {
-  return n.toLocaleString('fr-FR') + ' GNF';
-}
-
-function formatDate(dateStr: string): string {
-  const [, month, day] = dateStr.split('-');
-  const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-  return `${parseInt(day)} ${MOIS[parseInt(month) - 1]}`;
-}
 
 // ─── Composants ───────────────────────────────────────────────────────────
 function FiltreChips({ actif, onChange }: { actif: Filtre; onChange: (f: Filtre) => void }) {

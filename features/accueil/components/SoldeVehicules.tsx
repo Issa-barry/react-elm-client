@@ -2,11 +2,9 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { Colors, slate } from '@/shared/constants/theme';
+import { formatMontant } from '@/shared/utils/format';
 import { MOCK_VEHICULES } from '@/features/vehicule/data/mock-vehicules';
 
-function formatMontant(n: number): string {
-  return n.toLocaleString('fr-FR') + ' GNF';
-}
 
 function VehiculeRow({ item, isLast }: Readonly<{ item: typeof MOCK_VEHICULES[number]; isLast: boolean }>) {
   function handlePress() {
