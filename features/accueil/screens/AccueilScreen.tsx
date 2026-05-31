@@ -1,8 +1,8 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 
-import { ThemedText } from '@/shared/components/themed-text';
+import { Colors, blue } from '@/shared/constants/theme';
 
 const MOCK_USER = {
   nom: 'Moussa SIDIBÉ',
@@ -14,9 +14,7 @@ const QR_SIZE = 160;
 const QR_WRAPPER_PADDING = 12;
 const QR_OVERLAP = QR_SIZE / 2;
 const HEADER_HEIGHT = 140;
-// hauteur totale de la carte QR (image + padding haut/bas)
 const QR_CARD_HEIGHT = QR_SIZE + QR_WRAPPER_PADDING * 2;
-// portion qui dépasse sous le header
 const QR_BELOW_HEADER = QR_CARD_HEIGHT - QR_OVERLAP;
 
 function formatPhone(phone: string): string {
@@ -36,24 +34,24 @@ export default function AccueilScreen() {
       contentContainerStyle={{ paddingBottom: 32 }}
       showsVerticalScrollIndicator={false}>
 
-      {/* Header bleu */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]} />
+      {/* Header bleu PrimeVue */}
+      <View style={[styles.header, { paddingTop: insets.top }]} />
 
-      {/* QR code centré qui chevauche le header */}
+      {/* QR code flottant */}
       <View style={styles.qrAnchor}>
         <View style={styles.qrWrapper}>
-          <QRCode value={MOCK_USER.qrData} size={QR_SIZE} />
+          <QRCode
+            value={MOCK_USER.qrData}
+            size={QR_SIZE}
+            color={Colors.primary}
+          />
         </View>
       </View>
 
-      {/* Contenu blanc */}
+      {/* Infos utilisateur */}
       <View style={[styles.content, { paddingTop: QR_BELOW_HEADER + 24 }]}>
-        <ThemedText type="title" style={styles.name}>
-          {MOCK_USER.nom}
-        </ThemedText>
-        <ThemedText style={styles.phone}>
-          {formatPhone(MOCK_USER.telephone)}
-        </ThemedText>
+        <Text style={styles.name}>{MOCK_USER.nom}</Text>
+        <Text style={styles.phone}>{formatPhone(MOCK_USER.telephone)}</Text>
       </View>
 
     </ScrollView>
@@ -62,11 +60,11 @@ export default function AccueilScreen() {
 
 const styles = StyleSheet.create({
   scroll: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   header: {
     height: HEADER_HEIGHT,
-    backgroundColor: '#A1CEDC',
+    backgroundColor: Colors.primary,
   },
   qrAnchor: {
     position: 'absolute',
@@ -76,13 +74,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qrWrapper: {
-    backgroundColor: '#fff',
-    padding: 12,
+    backgroundColor: Colors.background,
+    padding: QR_WRAPPER_PADDING,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
     elevation: 6,
   },
   content: {
@@ -91,13 +91,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
     textAlign: 'center',
   },
   phone: {
     fontSize: 15,
-    opacity: 0.55,
+    color: Colors.textMuted,
     textAlign: 'center',
   },
 });
