@@ -17,13 +17,14 @@ const AppTheme = {
 };
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: '(auth)',
 };
 
 export default function RootLayout() {
   return (
     <ThemeProvider value={AppTheme}>
       <Stack>
+        <Stack.Screen name="(auth)"              options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)"              options={{ headerShown: false }} />
         <Stack.Screen name="modal"               options={{ presentation: 'modal' }} />
         <Stack.Screen name="vehicule/[id]"       options={{ headerBackTitle: 'Retour' }} />

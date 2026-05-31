@@ -1,8 +1,9 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 
 import { Colors, blue } from '@/shared/constants/theme';
+import { useLogout } from '@/features/auth/hooks/useLogout';
 import GainsCarousel from '../components/GainsCarousel';
 import SoldeVehicules from '../components/SoldeVehicules';
 
@@ -29,6 +30,7 @@ function formatPhone(phone: string): string {
 
 export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
+  const { logout } = useLogout();
 
   return (
     <ScrollView
@@ -36,8 +38,16 @@ export default function AccueilScreen() {
       contentContainerStyle={{ paddingBottom: 32 }}
       showsVerticalScrollIndicator={false}>
 
-      {/* Header bleu PrimeVue */}
-      <View style={[styles.header, { paddingTop: insets.top }]} />
+      {/* Header bleu */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        {/* Bouton déconnexion haut-droit */}
+        <TouchableOpacity
+          style={[styles.logoutBtn, { top: insets.top + 12 }]}
+          onPress={logout}
+          accessibilityLabel="Se déconnecter">
+          <Text style={styles.logoutIcon}>⏻</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* QR code flottant */}
       <View style={styles.qrAnchor}>
@@ -79,6 +89,20 @@ const styles = StyleSheet.create({
     height: HEADER_HEIGHT,
     backgroundColor: Colors.primary,
   },
+  logoutBtn: {
+    position: 'absolute',
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutIcon: {
+    fontSize: 18,
+    color: '#ffffff',
+  },
   qrAnchor: {
     position: 'absolute',
     top: HEADER_HEIGHT - QR_OVERLAP,
@@ -114,10 +138,6 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
   },
-  carouselSection: {
-    marginTop: 24,
-  },
-  soldeSection: {
-    marginTop: 24,
-  },
+  carouselSection: { marginTop: 24 },
+  soldeSection:    { marginTop: 24 },
 });
