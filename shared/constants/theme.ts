@@ -38,8 +38,8 @@ export const Colors = {
   primaryDark:      blue[700],   // #1d4ed8
 
   // fonds
-  background:       '#ffffff',
-  surface:          slate[50],   // #f8fafc  — cartes / sections secondaires
+  background:       '#e8edf5',   // fond général (inspiré PayPal)
+  surface:          '#ffffff',   // cartes / composants sur le fond
   overlay:          '#ffffff',
 
   // textes
@@ -63,7 +63,7 @@ export const Colors = {
   // compatibilité ancien thème (ne pas casser les imports)
   light: {
     text:           slate[950],
-    background:     '#ffffff',
+    background:     '#e8edf5',
     tint:           blue[600],
     icon:           slate[500],
     tabIconDefault: slate[400],

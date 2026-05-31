@@ -43,7 +43,8 @@ export default function AccueilScreen() {
           <QRCode
             value={MOCK_USER.qrData}
             size={QR_SIZE}
-            color={Colors.primary}
+            color="#ffffff"
+            backgroundColor={Colors.primary}
           />
         </View>
       </View>
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
     padding: QR_WRAPPER_PADDING,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#ffffff',
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
