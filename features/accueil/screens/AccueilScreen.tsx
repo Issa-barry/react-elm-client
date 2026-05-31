@@ -3,6 +3,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 
 import { Colors, blue } from '@/shared/constants/theme';
+import GainsCarousel from '../components/GainsCarousel';
+import SoldeVehicules from '../components/SoldeVehicules';
 
 const MOCK_USER = {
   nom: 'Moussa SIDIBÉ',
@@ -53,7 +55,17 @@ export default function AccueilScreen() {
       <View style={[styles.content, { paddingTop: QR_BELOW_HEADER + 24 }]}>
         <Text style={styles.name}>{MOCK_USER.nom}</Text>
         <Text style={styles.phone}>{formatPhone(MOCK_USER.telephone)}</Text>
-       </View>
+      </View>
+
+      {/* Carousel des gains */}
+      <View style={styles.carouselSection}>
+        <GainsCarousel />
+      </View>
+
+      {/* Solde par véhicule */}
+      <View style={styles.soldeSection}>
+        <SoldeVehicules />
+      </View>
 
     </ScrollView>
   );
@@ -101,5 +113,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.textMuted,
     textAlign: 'center',
+  },
+  carouselSection: {
+    marginTop: 24,
+  },
+  soldeSection: {
+    marginTop: 24,
   },
 });
