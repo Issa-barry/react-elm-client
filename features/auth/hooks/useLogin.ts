@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
 
-import { DEFAULT_COUNTRY, type LoginInput } from '../types/auth.types';
+import { DEFAULT_COUNTRY, buildE164, type LoginInput } from '../types/auth.types';
 import { validateLogin } from '../validation/auth.validation';
 import { authService } from '../services/auth.service';
 import { secureStorage } from '../services/secure-storage.service';
@@ -41,7 +41,7 @@ export function useLogin() {
     const input: LoginInput = {
       codePays:       state.codePays,
       telephoneLocal: state.telephoneLocal,
-      telephone:      `${state.prefix}${state.telephoneLocal}`,
+      telephone:      buildE164(state.prefix, state.telephoneLocal),
       password:       state.password,
     };
 

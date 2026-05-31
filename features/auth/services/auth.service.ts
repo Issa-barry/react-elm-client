@@ -28,7 +28,8 @@ async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
       body: JSON.stringify(body),
     });
     const json = await res.json();
-    if (!res.ok) return { ok: false, error: json.message ?? 'Erreur serveur.' };
+    // Le backend retourne parfois "message", parfois "error" selon le type d'erreur
+    if (!res.ok) return { ok: false, error: json.message ?? json.error ?? 'Erreur serveur.' };
     return { ok: true, data: json as T };
   } catch {
     return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };
@@ -82,12 +83,13 @@ export const authService = {
       };
     }
     return post('/api/auth/register', {
-      telephone:        data.telephone,
-      telephone_local:  data.telephoneLocal,
+      telephone:         data.telephone,
+      telephone_local:   data.telephoneLocal,
       telephone_country: data.codePays,
-      prenom:           data.prenom,
-      nom:              data.nom,
-      password:         data.password,
+      prenom:            data.prenom,
+      nom:               data.nom,
+      password:          data.password,
+      device_name:       'EauLaMaman-Mobile',
     });
   },
 

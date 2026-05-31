@@ -57,11 +57,16 @@ export function PhoneInput({
         <TextInput
           style={styles.input}
           value={telephoneLocal}
-          onChangeText={t => onChangePhone(t.replace(/\D/g, ''))}
+          onChangeText={t => {
+            const raw = t.replace(/\D/g, '');
+            // Autoriser localLength+1 si commence par 0 (ex: France 07XXXXXXXX)
+            const max = raw.startsWith('0') ? selected.digits + 1 : selected.digits;
+            onChangePhone(raw.slice(0, max));
+          }}
           keyboardType="phone-pad"
-          placeholder={`${'0'.repeat(selected.digits)} (${selected.digits} chiffres)`}
+          placeholder={`${selected.digits} chiffres`}
           placeholderTextColor={slate[400]}
-          maxLength={selected.digits}
+          maxLength={selected.digits + 1}
           accessibilityLabel="Numéro de téléphone"
         />
       </View>

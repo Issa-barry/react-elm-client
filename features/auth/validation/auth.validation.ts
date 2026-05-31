@@ -19,7 +19,7 @@ export function validatePassword(value: string): string | null {
   if (value.length < 8)   return 'Minimum 8 caractères.';
   if (!/[A-Z]/.test(value)) return 'Au moins une lettre majuscule.';
   if (!/[a-z]/.test(value)) return 'Au moins une lettre minuscule.';
-  if (!/[0-9]/.test(value)) return 'Au moins un chiffre.';
+  if (!/\d/.test(value)) return 'Au moins un chiffre.';
   if (!SPECIAL.test(value)) return 'Au moins un caractère spécial.';
   return null;
 }
@@ -27,10 +27,14 @@ export function validatePassword(value: string): string | null {
 // ─── Téléphone ─────────────────────────────────────────────────────────────
 export function validatePhone(telephoneLocal: string, codePays: string): string | null {
   const country = COUNTRIES.find(c => c.code === codePays);
-  if (!telephoneLocal)                    return 'Le numéro de téléphone est requis.';
-  if (!/^\d+$/.test(telephoneLocal))      return 'Chiffres uniquement.';
-  if (country && telephoneLocal.length !== country.digits) {
-    return `${country.digits} chiffres requis pour ${country.name}.`;
+  if (!telephoneLocal)               return 'Le numéro de téléphone est requis.';
+  if (!/^\d+$/.test(telephoneLocal)) return 'Chiffres uniquement.';
+  if (country) {
+    // Strip le 0 initial (comme le web) avant vérification de longueur
+    const normalized = telephoneLocal.replace(/^0/, '');
+    if (normalized.length !== country.digits) {
+      return `${country.digits} chiffres requis pour ${country.name} (sans le 0 initial).`;
+    }
   }
   return null;
 }

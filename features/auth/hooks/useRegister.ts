@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 
 import {
   DEFAULT_COUNTRY,
+  buildE164,
   type RegisterStep1Data,
   type RegisterStep2Data,
   type RegisterStep3Data,
@@ -78,7 +79,7 @@ export function useRegister() {
       const step1: RegisterStep1Data = {
         codePays: state.codePays, prefix: state.prefix,
         telephoneLocal: state.telephoneLocal,
-        telephone: `${state.prefix}${state.telephoneLocal}`,
+        telephone: buildE164(state.prefix, state.telephoneLocal),
       };
       const { valid, errors } = validateStep1(step1);
       if (!valid) { setState(prev => ({ ...prev, loading: false, errors })); return; }
@@ -100,8 +101,8 @@ export function useRegister() {
         ...prev, loading: false,
         telephone: step1.telephone,
         step: 2,
-        prenom: lookup.data.prenom ?? prev.prenom,
-        nom:    lookup.data.nom    ?? prev.nom,
+        prenom: lookup.data.prefill?.prenom ?? prev.prenom,
+        nom:    lookup.data.prefill?.nom    ?? prev.nom,
         prefilled,
       }));
       return;

@@ -21,6 +21,14 @@ export const COUNTRIES: Country[] = [
 
 export const DEFAULT_COUNTRY = COUNTRIES[0]; // Guinée
 
+/** Compose un numéro E.164 : retire le 0 initial du numéro local si présent.
+ *  Ex: +33 + 0754158797 → +33754158797  (France)
+ *      +224 + 621234567 → +224621234567 (Guinée, inchangé)
+ */
+export function buildE164(prefix: string, local: string): string {
+  return `${prefix}${local.replace(/^0/, '')}`;
+}
+
 // ─── Session / utilisateur ─────────────────────────────────────────────────
 export interface AuthUser {
   id: string;
@@ -92,8 +100,7 @@ export type ApiResult<T> =
 // ─── Réponses API attendues ────────────────────────────────────────────────
 export interface LookupResponse {
   status: 'user_exists' | 'prefill_available' | 'not_found';
-  prenom?: string;
-  nom?: string;
+  prefill?: { prenom: string; nom: string } | null;
 }
 
 export interface OtpVerifyResponse {
