@@ -10,7 +10,7 @@ const MOCK_USER = {
   qrData: 'user-moussa-sidibe-001',
 };
 
-const QR_SIZE = 160;
+const QR_SIZE = 140;
 const QR_WRAPPER_PADDING = 12;
 const QR_OVERLAP = QR_SIZE / 2;
 const HEADER_HEIGHT = 140;
@@ -53,7 +53,7 @@ export default function AccueilScreen() {
       <View style={[styles.content, { paddingTop: QR_BELOW_HEADER + 24 }]}>
         <Text style={styles.name}>{MOCK_USER.nom}</Text>
         <Text style={styles.phone}>{formatPhone(MOCK_USER.telephone)}</Text>
-      </View>
+       </View>
 
     </ScrollView>
   );
