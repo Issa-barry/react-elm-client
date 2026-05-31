@@ -4,6 +4,7 @@ import QRCode from 'react-native-qrcode-svg';
 
 import { Colors, blue } from '@/shared/constants/theme';
 import GainsCarousel from '../components/GainsCarousel';
+import SoldeVehicules from '../components/SoldeVehicules';
 
 const MOCK_USER = {
   nom: 'Moussa SIDIBÉ',
@@ -61,6 +62,11 @@ export default function AccueilScreen() {
         <GainsCarousel />
       </View>
 
+      {/* Solde par véhicule */}
+      <View style={styles.soldeSection}>
+        <SoldeVehicules />
+      </View>
+
     </ScrollView>
   );
 }
@@ -109,6 +115,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   carouselSection: {
+    marginTop: 24,
+  },
+  soldeSection: {
     marginTop: 24,
   },
 });
