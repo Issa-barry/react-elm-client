@@ -31,7 +31,7 @@ function TransactionRow({ tx }: { tx: Transaction }) {
   return (
     <View style={styles.txRow}>
       <View style={styles.txLeft}>
-        <Text style={styles.txDescription}>{tx.description}</Text>
+        <Text style={styles.txDescription}>{tx.reference}</Text>
         <Text style={styles.txDate}>{formatDate(tx.date)}</Text>
       </View>
       <View style={styles.txRight}>

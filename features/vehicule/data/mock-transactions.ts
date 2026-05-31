@@ -1,40 +1,85 @@
 export interface Transaction {
   id: string;
-  date: string; // YYYY-MM-DD
-  description: string;
+  date: string;        // YYYY-MM-DD
+  reference: string;   // ex: CV-2026-0042
   montant: number;
   statut: 'paye' | 'en_attente' | 'annule';
 }
 
 export interface TransactionGroup {
-  mois: string; // "Mai 2026"
+  mois: string;
   total: number;
   transactions: Transaction[];
 }
 
+// ─── Générateur ────────────────────────────────────────────────────────────
+let counter = 1;
+
+function ref(): string {
+  return `CV-2026-${String(counter++).padStart(4, '0')}`;
+}
+
+function day(
+  vehiculeId: string,
+  date: string,
+  count: 2 | 3 | 4,
+  montants: number[],
+  statuts: Transaction['statut'][],
+): Transaction[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `v${vehiculeId}-${date}-${i}`,
+    date,
+    reference: ref(),
+    montant: montants[i % montants.length],
+    statut: statuts[i % statuts.length],
+  }));
+}
+
+// ─── Données simulées ──────────────────────────────────────────────────────
 const DATA: Record<string, Transaction[]> = {
+  // Nen Dow — véhicule actif
   '1': [
-    { id: 't1',  date: '2026-05-28', description: 'Livraison Matoto',       montant: 45_000, statut: 'paye' },
-    { id: 't2',  date: '2026-05-21', description: 'Livraison Dixinn',        montant: 30_000, statut: 'paye' },
-    { id: 't3',  date: '2026-05-14', description: 'Livraison Ratoma',        montant: 40_000, statut: 'en_attente' },
-    { id: 't4',  date: '2026-04-29', description: 'Livraison Kaloum',        montant: 35_000, statut: 'paye' },
-    { id: 't5',  date: '2026-04-20', description: 'Livraison Matam',         montant: 50_000, statut: 'paye' },
-    { id: 't6',  date: '2026-04-10', description: 'Livraison Matoto',        montant: 30_000, statut: 'annule' },
-    { id: 't7',  date: '2026-03-25', description: 'Livraison Dixinn',        montant: 40_000, statut: 'paye' },
-    { id: 't8',  date: '2026-03-15', description: 'Livraison Kaloum',        montant: 0,      statut: 'annule' },
+    ...day('1', '2026-05-28', 3, [25_000, 30_000, 20_000], ['paye', 'paye', 'en_attente']),
+    ...day('1', '2026-05-27', 2, [30_000, 25_000],          ['paye', 'paye']),
+    ...day('1', '2026-05-26', 4, [20_000, 25_000, 30_000, 20_000], ['paye', 'paye', 'paye', 'en_attente']),
+    ...day('1', '2026-05-23', 3, [25_000, 30_000, 25_000],  ['paye', 'paye', 'paye']),
+    ...day('1', '2026-05-22', 2, [30_000, 20_000],          ['paye', 'en_attente']),
+    ...day('1', '2026-05-21', 3, [25_000, 25_000, 30_000],  ['paye', 'paye', 'paye']),
+    ...day('1', '2026-05-20', 4, [20_000, 30_000, 25_000, 20_000], ['paye', 'paye', 'paye', 'paye']),
+    ...day('1', '2026-05-19', 2, [25_000, 30_000],          ['paye', 'paye']),
+    ...day('1', '2026-04-30', 3, [30_000, 25_000, 20_000],  ['paye', 'paye', 'en_attente']),
+    ...day('1', '2026-04-29', 4, [25_000, 30_000, 25_000, 20_000], ['paye', 'paye', 'paye', 'paye']),
+    ...day('1', '2026-04-28', 2, [30_000, 25_000],          ['paye', 'paye']),
+    ...day('1', '2026-04-25', 3, [20_000, 25_000, 30_000],  ['paye', 'paye', 'paye']),
+    ...day('1', '2026-04-24', 2, [25_000, 30_000],          ['paye', 'en_attente']),
+    ...day('1', '2026-04-23', 4, [20_000, 25_000, 30_000, 25_000], ['paye', 'paye', 'paye', 'paye']),
+    ...day('1', '2026-04-22', 3, [30_000, 20_000, 25_000],  ['paye', 'paye', 'paye']),
+    ...day('1', '2026-04-07', 2, [25_000, 30_000],          ['paye', 'paye']),
+    ...day('1', '2026-03-28', 3, [30_000, 25_000, 20_000],  ['paye', 'paye', 'paye']),
+    ...day('1', '2026-03-27', 2, [25_000, 30_000],          ['paye', 'paye']),
+    ...day('1', '2026-03-26', 4, [20_000, 25_000, 30_000, 20_000], ['paye', 'paye', 'paye', 'annule']),
+    ...day('1', '2026-03-25', 3, [25_000, 30_000, 25_000],  ['paye', 'paye', 'paye']),
   ],
+
+  // Baba Ousou — peu actif
   '2': [
-    { id: 't9',  date: '2026-05-27', description: 'Livraison Ratoma',        montant: 0,      statut: 'en_attente' },
-    { id: 't10', date: '2026-05-18', description: 'Livraison Matoto',        montant: 0,      statut: 'en_attente' },
-    { id: 't11', date: '2026-04-22', description: 'Livraison Conakry Centre', montant: 0,     statut: 'annule' },
+    ...day('2', '2026-05-27', 2, [20_000, 25_000], ['en_attente', 'en_attente']),
+    ...day('2', '2026-05-20', 3, [25_000, 20_000, 25_000], ['en_attente', 'en_attente', 'annule']),
+    ...day('2', '2026-05-13', 2, [20_000, 25_000], ['en_attente', 'annule']),
+    ...day('2', '2026-04-25', 2, [25_000, 20_000], ['annule', 'annule']),
+    ...day('2', '2026-04-18', 3, [20_000, 25_000, 20_000], ['annule', 'en_attente', 'annule']),
   ],
+
+  // Conakry 2 — peu actif
   '3': [
-    { id: 't12', date: '2026-05-25', description: 'Livraison Kaloum',        montant: 0,      statut: 'en_attente' },
-    { id: 't13', date: '2026-04-17', description: 'Livraison Matam',         montant: 0,      statut: 'annule' },
-    { id: 't14', date: '2026-03-30', description: 'Livraison Dixinn',        montant: 0,      statut: 'en_attente' },
+    ...day('3', '2026-05-26', 2, [20_000, 25_000], ['en_attente', 'en_attente']),
+    ...day('3', '2026-05-19', 3, [25_000, 20_000, 25_000], ['en_attente', 'annule', 'en_attente']),
+    ...day('3', '2026-04-28', 2, [20_000, 25_000], ['annule', 'en_attente']),
+    ...day('3', '2026-03-31', 3, [25_000, 20_000, 25_000], ['en_attente', 'en_attente', 'annule']),
   ],
 };
 
+// ─── Groupement par mois ───────────────────────────────────────────────────
 const MOIS_FR = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
