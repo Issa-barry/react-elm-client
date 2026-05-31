@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect } from 'react-native-svg';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
 
@@ -54,23 +54,19 @@ function formatMontant(n: number): string {
   return n.toLocaleString('fr-FR') + ' GNF';
 }
 
-// Utilise viewBox 0 0 100 100 avec preserveAspectRatio="none"
-// pour que le SVG s'adapte exactement à la taille réelle de la carte
+// SVG identique au KpiWidgetCard.vue du monolithe (viewBox 900x600)
 function WavePrimary() {
   return (
     <Svg
       width="100%"
       height="100%"
-      viewBox="0 0 100 100"
+      viewBox="0 0 900 600"
       preserveAspectRatio="none"
       style={StyleSheet.absoluteFill}>
+      <Rect x="0" y="0" width="900" height="600" fill={blue[600]} />
       <Path
-        d="M0,55 C25,35 75,72 100,48 L100,100 L0,100 Z"
-        fill="rgba(255,255,255,0.10)"
-      />
-      <Path
-        d="M0,68 C30,50 70,82 100,62 L100,100 L0,100 Z"
-        fill="rgba(255,255,255,0.07)"
+        d="M0 400L30 386.5C60 373 120 346 180 334.8C240 323.7 300 328.3 360 345.2C420 362 480 391 540 392C600 393 660 366 720 355.2C780 344.3 840 349.7 870 352.3L900 355L900 601L870 601C840 601 780 601 720 601C660 601 600 601 540 601C480 601 420 601 360 601C300 601 240 601 180 601C120 601 60 601 30 601L0 601Z"
+        fill={blue[500]}
       />
     </Svg>
   );
