@@ -87,24 +87,32 @@ function TransactionRow({ tx }: { tx: Transaction }) {
 // ─── Écran ─────────────────────────────────────────────────────────────────
 export default function VehiculeDetailScreen({ id, nom, immatriculation }: Props) {
   const insets = useSafeAreaInsets();
-  const [filtre, setFiltre] = useState<Filtre>('tous');
+  const [filtre, setFiltre]     = useState<Filtre>('tous');
+  const [moisActif, setMoisActif] = useState<string>('tous');
 
   const tousGroupes = getTransactionsGroupees(id);
 
-  const groupesFiltres = useMemo(() => {
-    if (filtre === 'tous') return tousGroupes;
+  // Liste des mois disponibles pour les chips
+  const moisDisponibles = useMemo(
+    () => tousGroupes.map((g) => g.mois),
+    [tousGroupes],
+  );
 
+  const groupesFiltres = useMemo(() => {
     return tousGroupes
+      .filter((g) => moisActif === 'tous' || g.mois === moisActif)
       .map((g) => ({
         ...g,
-        transactions: g.transactions.filter((t) => t.statut === filtre),
+        transactions: g.transactions.filter(
+          (t) => filtre === 'tous' || t.statut === filtre,
+        ),
       }))
       .filter((g) => g.transactions.length > 0)
       .map((g) => ({
         ...g,
         total: g.transactions.reduce((sum, t) => sum + t.montant, 0),
       }));
-  }, [filtre, tousGroupes]);
+  }, [filtre, moisActif, tousGroupes]);
 
   const totalFiltré = groupesFiltres.reduce((sum, g) => sum + g.total, 0);
   const nombreFiltré = groupesFiltres.reduce((n, g) => n + g.transactions.length, 0);
@@ -132,8 +140,34 @@ export default function VehiculeDetailScreen({ id, nom, immatriculation }: Props
         </View>
       </View>
 
-      {/* Filtres chips */}
+      {/* Filtre statut */}
       <FiltreChips actif={filtre} onChange={setFiltre} />
+
+      {/* Filtre mois */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtreList}>
+        <TouchableOpacity
+          onPress={() => setMoisActif('tous')}
+          activeOpacity={0.7}
+          style={[styles.chip, styles.chipMois, moisActif === 'tous' && styles.chipMoisActive]}>
+          <Text style={[styles.chipLabel, moisActif === 'tous' && styles.chipLabelMoisActive]}>
+            Tous les mois
+          </Text>
+        </TouchableOpacity>
+        {moisDisponibles.map((mois) => (
+          <TouchableOpacity
+            key={mois}
+            onPress={() => setMoisActif(mois)}
+            activeOpacity={0.7}
+            style={[styles.chip, styles.chipMois, moisActif === mois && styles.chipMoisActive]}>
+            <Text style={[styles.chipLabel, moisActif === mois && styles.chipLabelMoisActive]}>
+              {mois}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {/* Groupes par mois */}
       {groupesFiltres.map((groupe) => (
@@ -236,6 +270,20 @@ const styles = StyleSheet.create({
   },
   chipLabelActive: {
     color: '#fff',
+    fontWeight: '600',
+  },
+
+  // Chips mois (style secondaire : contour bleu quand actif)
+  chipMois: {
+    backgroundColor: Colors.surface,
+    borderColor: slate[200],
+  },
+  chipMoisActive: {
+    backgroundColor: blue[50],
+    borderColor: Colors.primary,
+  },
+  chipLabelMoisActive: {
+    color: Colors.primary,
     fontWeight: '600',
   },
 

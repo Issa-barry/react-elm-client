@@ -2,29 +2,17 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { Colors, slate } from '@/shared/constants/theme';
-
-interface VehiculeItem {
-  id: string;
-  nom: string;
-  immatriculation: string;
-  gains: number;
-}
-
-const MOCK_VEHICULES: VehiculeItem[] = [
-  { id: '1', nom: 'Nen Dow',    immatriculation: 'RC-001-GN', gains: 270_000 },
-  { id: '2', nom: 'Baba Ousou', immatriculation: 'VN-001-GN', gains: 0 },
-  { id: '3', nom: 'Conakry 2',  immatriculation: 'TC-002-GN', gains: 0 },
-];
+import { MOCK_VEHICULES } from '@/features/vehicule/data/mock-vehicules';
 
 function formatMontant(n: number): string {
   return n.toLocaleString('fr-FR') + ' GNF';
 }
 
-function VehiculeRow({ item, isLast }: { item: VehiculeItem; isLast: boolean }) {
+function VehiculeRow({ item, isLast }: Readonly<{ item: typeof MOCK_VEHICULES[number]; isLast: boolean }>) {
   function handlePress() {
     router.push({
-      pathname: '/vehicule/[id]',
-      params: { id: item.id, nom: item.nom, immatriculation: item.immatriculation },
+      pathname: `/vehicule/${item.id}`,
+      params: { nom: item.nom, immatriculation: item.immatriculation },
     });
   }
 
