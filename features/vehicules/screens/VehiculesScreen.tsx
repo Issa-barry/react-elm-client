@@ -1,21 +1,54 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 import { Colors, slate } from '@/shared/constants/theme';
-import { formatMontant } from '@/shared/utils/format';
-import {
-  MOCK_VEHICULES,
-  STATUT_VEHICULE_CONFIG,
-  TYPE_ICONE,
-  type Vehicule,
-} from '@/features/vehicule/data/mock-vehicules';
+import { useVehiculesMine } from '@/features/vehicule/hooks/useVehiculesMine';
+import type { VehiculeApi } from '@/features/vehicule/types/vehicule.types';
 
+// ─── Icône par type (labels retournés par le backend) ─────────────────────────
 
-function VehiculeCard({ vehicule }: Readonly<{ vehicule: Vehicule }>) {
-  const statut = STATUT_VEHICULE_CONFIG[vehicule.statut];
-  const icone  = TYPE_ICONE[vehicule.type];
+const TYPE_ICONE: Record<string, string> = {
+  Camion:   '🚚',
+  Minibus:  '🚐',
+  Tricycle: '🛺',
+};
 
+function icone(type: string) {
+  return TYPE_ICONE[type] ?? '🚗';
+}
+
+// Affiche la photo si disponible, emoji en fallback si erreur de chargement
+function VehiculeIcon({ photoUrl, type }: Readonly<{ photoUrl: string | null; type: string }>) {
+  const [erreur, setErreur] = useState(false);
+
+  if (photoUrl && !erreur) {
+    return (
+      <Image
+        source={{ uri: photoUrl }}
+        style={styles.photo}
+        resizeMode="cover"
+        onError={() => setErreur(true)}
+      />
+    );
+  }
+  return <Text style={styles.iconText}>{icone(type)}</Text>;
+}
+
+// ─── Carte véhicule ──────────────────────────────────────────────────────────
+
+function VehiculeCard({ vehicule }: Readonly<{ vehicule: VehiculeApi }>) {
   function handlePress() {
     router.push({
       pathname: `/vehicule/frais/${vehicule.id}`,
@@ -25,17 +58,17 @@ function VehiculeCard({ vehicule }: Readonly<{ vehicule: Vehicule }>) {
 
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={handlePress} style={styles.card}>
-      {/* Icône type */}
       <View style={styles.iconBox}>
-        <Text style={styles.iconText}>{icone}</Text>
+        <VehiculeIcon photoUrl={vehicule.photo_url} type={vehicule.type} />
       </View>
 
-      {/* Infos */}
       <View style={styles.infos}>
         <View style={styles.infosTop}>
-          <Text style={styles.nom}>{vehicule.nom}</Text>
-          <View style={[styles.badge, { backgroundColor: statut.bg }]}>
-            <Text style={[styles.badgeText, { color: statut.text }]}>{statut.label}</Text>
+          <Text style={styles.nom} numberOfLines={1}>{vehicule.nom}</Text>
+          <View style={[styles.badge, vehicule.is_active ? styles.badgeActif : styles.badgeInactif]}>
+            <Text style={[styles.badgeText, vehicule.is_active ? styles.badgeActifText : styles.badgeInactifText]}>
+              {vehicule.is_active ? 'Actif' : 'Inactif'}
+            </Text>
           </View>
         </View>
 
@@ -53,9 +86,9 @@ function VehiculeCard({ vehicule }: Readonly<{ vehicule: Vehicule }>) {
           </View>
           <View style={styles.metaDivider} />
           <View style={styles.metaItem}>
-            <Text style={styles.metaLabel}>Frais</Text>
-            <Text style={[styles.metaValue, styles.metaGains]}>
-              {formatMontant(vehicule.gains)}
+            <Text style={styles.metaLabel}>Rôle</Text>
+            <Text style={styles.metaValue}>
+              {vehicule.role === 'proprietaire' ? 'Propriétaire' : 'Livreur'}
             </Text>
           </View>
         </View>
@@ -66,8 +99,76 @@ function VehiculeCard({ vehicule }: Readonly<{ vehicule: Vehicule }>) {
   );
 }
 
+// ─── États spéciaux ──────────────────────────────────────────────────────────
+
+function LoadingState() {
+  return (
+    <View style={styles.centerBox}>
+      <ActivityIndicator size="large" color={Colors.primary} />
+      <Text style={styles.centerText}>Chargement des véhicules…</Text>
+    </View>
+  );
+}
+
+function ErrorState({ message, onRetry }: Readonly<{ message: string; onRetry: () => void }>) {
+  return (
+    <View style={styles.centerBox}>
+      <Text style={styles.errorText}>{message}</Text>
+      <TouchableOpacity activeOpacity={0.8} onPress={onRetry} style={styles.retryBtn}>
+        <Text style={styles.retryBtnText}>Réessayer</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function EmptyState() {
+  return (
+    <View style={styles.centerBox}>
+      <Text style={styles.emptyIcon}>🚗</Text>
+      <Text style={styles.emptyTitle}>Aucun véhicule</Text>
+      <Text style={styles.emptyText}>Vous n'avez pas encore de véhicule associé à votre compte.</Text>
+    </View>
+  );
+}
+
+// ─── Écran principal ─────────────────────────────────────────────────────────
+
 export default function VehiculesScreen() {
   const insets = useSafeAreaInsets();
+  const { vehicules, loading, refreshing, error, load, refetch } = useVehiculesMine();
+
+  // Chargement initial
+  useEffect(() => { load(); }, [load]);
+
+  // Rechargement à chaque retour sur cet onglet
+  useFocusEffect(
+    useCallback(() => { refetch(); }, [refetch])
+  );
+
+  // Rechargement quand l'app revient au premier plan (ex : retour depuis le navigateur admin)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') refetch();
+    });
+    return () => sub.remove();
+  }, [refetch]);
+
+  const renderContent = () => {
+    if (loading) return <LoadingState />;
+    if (error)   return <ErrorState message={error} onRetry={refetch} />;
+    if (vehicules.length === 0) return <EmptyState />;
+
+    return (
+      <>
+        <Text style={styles.sousTitre}>
+          {vehicules.length} véhicule{vehicules.length > 1 ? 's' : ''}
+        </Text>
+        <View style={styles.liste}>
+          {vehicules.map((v) => <VehiculeCard key={v.id} vehicule={v} />)}
+        </View>
+      </>
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -77,19 +178,19 @@ export default function VehiculesScreen() {
           styles.content,
           { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 },
         ]}
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refetch}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }>
         <Text style={styles.titre}>Mes véhicules</Text>
-        <Text style={styles.sousTitre}>{MOCK_VEHICULES.length} véhicule{MOCK_VEHICULES.length > 1 ? 's' : ''}</Text>
-
-        <View style={styles.liste}>
-          {MOCK_VEHICULES.map((v) => (
-            <VehiculeCard key={v.id} vehicule={v} />
-          ))}
-        </View>
+        {renderContent()}
       </ScrollView>
 
-      {/* FAB Proposer un véhicule */}
       <TouchableOpacity
         activeOpacity={0.85}
         style={[styles.fab, { bottom: insets.bottom + 24 }]}
@@ -101,35 +202,16 @@ export default function VehiculesScreen() {
   );
 }
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-  },
+  wrapper:  { flex: 1, backgroundColor: Colors.background },
+  scroll:   { flex: 1 },
+  content:  { paddingHorizontal: 16 },
+  titre:    { fontSize: 24, fontWeight: '700', color: Colors.text },
+  sousTitre:{ fontSize: 14, color: slate[400], marginTop: 2, marginBottom: 20 },
+  liste:    { gap: 12 },
 
-  titre: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  sousTitre: {
-    fontSize: 14,
-    color: slate[400],
-    marginTop: 2,
-    marginBottom: 20,
-  },
-
-  liste: {
-    gap: 12,
-  },
-
-  // Carte véhicule
   card: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
@@ -141,100 +223,50 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   iconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 52, height: 52, borderRadius: 14,
     backgroundColor: slate[100],
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden',
   },
-  iconText: {
-    fontSize: 26,
-  },
-  infos: {
-    flex: 1,
-    gap: 4,
-  },
-  infosTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  nom: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  immat: {
-    fontSize: 13,
-    color: slate[400],
-  },
-  meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 10,
-  },
-  metaItem: {
-    gap: 1,
-  },
-  metaLabel: {
-    fontSize: 11,
-    color: slate[400],
-  },
-  metaValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  metaGains: {
-    color: Colors.primary,
-  },
-  metaDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: slate[200],
-  },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  chevron: {
-    fontSize: 22,
-    color: slate[300],
-  },
+  photo:    { width: 52, height: 52, borderRadius: 14 },
+  iconText: { fontSize: 26 },
+  infos:    { flex: 1, gap: 4 },
+  infosTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  nom:      { fontSize: 15, fontWeight: '700', color: Colors.text, flex: 1 },
+  immat:    { fontSize: 13, color: slate[400] },
+  meta:     { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 10 },
+  metaItem: { gap: 1 },
+  metaLabel:{ fontSize: 11, color: slate[400] },
+  metaValue:{ fontSize: 13, fontWeight: '600', color: Colors.text },
+  metaDivider: { width: 1, height: 28, backgroundColor: slate[200] },
 
-  // FAB
+  badge:          { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
+  badgeText:      { fontSize: 12, fontWeight: '600' },
+  badgeActif:     { backgroundColor: '#dcfce7' },
+  badgeActifText: { color: '#16a34a' },
+  badgeInactif:   { backgroundColor: '#fee2e2' },
+  badgeInactifText: { color: '#dc2626' },
+  chevron:        { fontSize: 22, color: slate[300] },
+
+  centerBox:  { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 12 },
+  centerText: { fontSize: 14, color: slate[400], marginTop: 8 },
+  errorText:  { fontSize: 14, color: '#dc2626', textAlign: 'center', paddingHorizontal: 16 },
+  retryBtn:   { marginTop: 4, backgroundColor: Colors.primary, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20 },
+  retryBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  emptyIcon:  { fontSize: 48 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.text },
+  emptyText:  { fontSize: 14, color: slate[400], textAlign: 'center', paddingHorizontal: 32, lineHeight: 20 },
+
   fab: {
-    position: 'absolute',
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+    position: 'absolute', right: 20,
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 28,
-    gap: 8,
+    paddingVertical: 14, paddingHorizontal: 20,
+    borderRadius: 28, gap: 8,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
   },
-  fabIcon: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '300',
-    lineHeight: 24,
-  },
-  fabLabel: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  fabIcon:  { color: '#fff', fontSize: 22, fontWeight: '300', lineHeight: 24 },
+  fabLabel: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   NativeScrollEvent,
@@ -12,12 +13,18 @@ import Svg, { Path, Rect } from 'react-native-svg';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
 import { formatMontant } from '@/shared/utils/format';
+import type { GainsMine } from '@/features/gains/types/gains.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const H_PADDING = 24;
-const CARD_GAP = 12;
+const H_PADDING  = 24;
+const CARD_GAP   = 12;
 const CARD_WIDTH = SCREEN_WIDTH - H_PADDING * 2;
 const CARD_HEIGHT = 155;
+
+interface Props {
+  gains: GainsMine | null;
+  loading: boolean;
+}
 
 interface CardData {
   id: string;
@@ -27,32 +34,6 @@ interface CardData {
   variant: 'primary' | 'white';
 }
 
-const CARDS: CardData[] = [
-  {
-    id: '1',
-    titre: 'Gains total',
-    montant: 2_955_000,
-    sousTitre: '11 gains',
-    variant: 'primary',
-  },
-  {
-    id: '2',
-    titre: 'Déjà payé',
-    montant: 2_510_000,
-    sousTitre: '2 versements',
-    variant: 'white',
-  },
-  {
-    id: '3',
-    titre: 'Reste à payer',
-    montant: 445_000,
-    sousTitre: '9 impayés · 0 annulé',
-    variant: 'white',
-  },
-];
-
-
-// Dimensions explicites en pixels — nécessaire sur iOS (RN SVG ne résout pas % correctement)
 function WavePrimary() {
   return (
     <Svg
@@ -70,7 +51,11 @@ function WavePrimary() {
   );
 }
 
-function CardPrimary({ card }: { card: CardData }) {
+function CardSeparator() {
+  return <View style={{ width: CARD_GAP }} />;
+}
+
+function CardPrimary({ card }: Readonly<{ card: CardData }>) {
   return (
     <View style={[styles.card, styles.cardPrimary]}>
       <WavePrimary />
@@ -81,7 +66,7 @@ function CardPrimary({ card }: { card: CardData }) {
   );
 }
 
-function CardWhite({ card }: { card: CardData }) {
+function CardWhite({ card }: Readonly<{ card: CardData }>) {
   return (
     <View style={[styles.card, styles.cardWhite]}>
       <Text style={styles.titreWhite}>{card.titre}</Text>
@@ -91,7 +76,7 @@ function CardWhite({ card }: { card: CardData }) {
   );
 }
 
-export default function GainsCarousel() {
+export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -99,17 +84,50 @@ export default function GainsCarousel() {
     setActiveIndex(index);
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingBox}>
+        <ActivityIndicator color={Colors.primary} />
+      </View>
+    );
+  }
+
+  const nb = gains?.nb_commandes ?? 0;
+  const cards: CardData[] = [
+    {
+      id: '1',
+      titre: 'Gains total',
+      montant: gains?.total_net ?? 0,
+      sousTitre: `${nb} gain${nb > 1 ? 's' : ''}`,
+      variant: 'primary',
+    },
+    {
+      id: '2',
+      titre: 'Déjà payé',
+      montant: gains?.total_verse ?? 0,
+      sousTitre: 'Versements reçus',
+      variant: 'white',
+    },
+    {
+      id: '3',
+      titre: 'Reste à payer',
+      montant: gains?.total_restant ?? 0,
+      sousTitre: 'Solde en attente',
+      variant: 'white',
+    },
+  ];
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={CARDS}
+        data={cards}
         keyExtractor={(item) => item.id}
         horizontal
         snapToInterval={CARD_WIDTH + CARD_GAP}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        ItemSeparatorComponent={() => <View style={{ width: CARD_GAP }} />}
+        ItemSeparatorComponent={CardSeparator}
         onScroll={onScroll}
         scrollEventThrottle={16}
         renderItem={({ item }) =>
@@ -119,8 +137,8 @@ export default function GainsCarousel() {
         }
       />
       <View style={styles.dots}>
-        {CARDS.map((_, i) => (
-          <View key={i} style={[styles.dot, i === activeIndex && styles.dotActive]} />
+        {cards.map((card, i) => (
+          <View key={card.id} style={[styles.dot, i === activeIndex && styles.dotActive]} />
         ))}
       </View>
     </View>
@@ -128,82 +146,23 @@ export default function GainsCarousel() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-  },
-  list: {
-    paddingHorizontal: H_PADDING,
-  },
+  container: { gap: 12 },
+  list:      { paddingHorizontal: H_PADDING },
+  loadingBox:{ height: CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' },
 
-  // ── Carte commune ──────────────────────────────────────
-  card: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    borderRadius: 16,
-    padding: 20,
-    overflow: 'hidden',
-    justifyContent: 'space-between',
-  },
+  card: { width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 16, padding: 20, overflow: 'hidden', justifyContent: 'space-between' },
 
-  // ── Carte 1 : bleue avec vagues ────────────────────────
-  cardPrimary: {
-    backgroundColor: Colors.primary,
-  },
-  titrePrimary: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  montantPrimary: {
-    color: '#ffffff',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  sousTitrePrimary: {
-    color: 'rgba(255,255,255,0.65)',
-    fontSize: 13,
-  },
+  cardPrimary:      { backgroundColor: Colors.primary },
+  titrePrimary:     { color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: '500' },
+  montantPrimary:   { color: '#ffffff', fontSize: 28, fontWeight: '700' },
+  sousTitrePrimary: { color: 'rgba(255,255,255,0.65)', fontSize: 13 },
 
-  // ── Cartes 2 & 3 : blanches ────────────────────────────
-  cardWhite: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: slate[200],
-  },
-  titreWhite: {
-    color: slate[500],
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  montantWhite: {
-    color: slate[900],
-    fontSize: 26,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  sousTitreWhite: {
-    color: slate[400],
-    fontSize: 13,
-    textAlign: 'center',
-  },
+  cardWhite:     { backgroundColor: Colors.surface, borderWidth: 1, borderColor: slate[200] },
+  titreWhite:    { color: slate[500], fontSize: 14, fontWeight: '500', textAlign: 'center' },
+  montantWhite:  { color: slate[900], fontSize: 26, fontWeight: '700', textAlign: 'center' },
+  sousTitreWhite:{ color: slate[400], fontSize: 13, textAlign: 'center' },
 
-  // ── Pagination dots ────────────────────────────────────
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: slate[300],
-  },
-  dotActive: {
-    width: 18,
-    backgroundColor: Colors.primary,
-    borderRadius: 3,
-  },
+  dots:      { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
+  dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: slate[300] },
+  dotActive: { width: 18, backgroundColor: Colors.primary, borderRadius: 3 },
 });

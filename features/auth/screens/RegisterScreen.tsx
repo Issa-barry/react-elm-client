@@ -94,7 +94,7 @@ export default function RegisterScreen() {
               onChangeText={v => set('prenom', v)}
               placeholder="Ex : Moussa"
               autoCapitalize="words"
-              editable={!state.prefilled}
+              locked={state.prefilled}
               error={state.errors.prenom}
             />
             <AuthInput
@@ -103,7 +103,7 @@ export default function RegisterScreen() {
               onChangeText={v => set('nom', v)}
               placeholder="Ex : SIDIBÉ"
               autoCapitalize="characters"
-              editable={!state.prefilled}
+              locked={state.prefilled}
               error={state.errors.nom}
             />
           </View>

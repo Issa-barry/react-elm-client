@@ -1,12 +1,5 @@
-/**
- * Couche service auth — isolée de l'UI.
- * Les appels API réels sont préparés ; les mocks actifs pour le développement.
- * Remplacer BASE_URL par l'URL du backend pour activer les vrais appels.
- */
-
 import type {
   ApiResult,
-  AuthSession,
   FullRegisterData,
   LoginInput,
   LoginResponse,
@@ -14,12 +7,11 @@ import type {
   OtpVerifyResponse,
 } from '../types/auth.types';
 
-// URL lue depuis .env (EXPO_PUBLIC_ = exposée côté bundle, jamais de secret dedans)
-// .env n'est pas commité — voir .env.example
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
-const USE_MOCK = !BASE_URL; // mock automatique si URL non définie
+const USE_MOCK = !BASE_URL;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
+// ─── Helper POST ──────────────────────────────────────────────────────────────
+
 async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -28,7 +20,6 @@ async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
       body: JSON.stringify(body),
     });
     const json = await res.json();
-    // Le backend retourne parfois "message", parfois "error" selon le type d'erreur
     if (!res.ok) return { ok: false, error: json.message ?? json.error ?? 'Erreur serveur.' };
     return { ok: true, data: json as T };
   } catch {
@@ -36,16 +27,17 @@ async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
   }
 }
 
-// ─── Mocks développement ──────────────────────────────────────────────────
+// ─── Mocks développement ─────────────────────────────────────────────────────
+
 const MOCK_TOKEN = 'mock-dev-token-xxxx';
-const MOCK_OTP   = '12345'; // Code MVP monolithe
+const MOCK_OTP   = '12345';
 
-function sleep(ms = 800) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms = 800) { return new Promise<void>(r => setTimeout(r, ms)); }
 
-// ─── Service ──────────────────────────────────────────────────────────────
+// ─── Service ─────────────────────────────────────────────────────────────────
+
 export const authService = {
 
-  /** Vérifie si le numéro existe déjà */
   async lookup(telephone: string): Promise<ApiResult<LookupResponse>> {
     if (USE_MOCK) {
       await sleep();
@@ -54,7 +46,6 @@ export const authService = {
     return post('/api/auth/register/lookup', { telephone });
   },
 
-  /** Vérifie le code OTP reçu par SMS */
   async verifyOtp(telephone: string, code: string): Promise<ApiResult<OtpVerifyResponse>> {
     if (USE_MOCK) {
       await sleep();
@@ -64,7 +55,6 @@ export const authService = {
     return post('/api/auth/register/otp', { telephone, code });
   },
 
-  /** Crée le compte */
   async register(data: FullRegisterData): Promise<ApiResult<LoginResponse>> {
     if (USE_MOCK) {
       await sleep(1000);
@@ -93,11 +83,11 @@ export const authService = {
     });
   },
 
-  /** Connexion */
+  // Le backend elm-monolithe attend "telephone" + "device_name"
+  // et retourne directement { token, user } (pas d'enveloppe { success, data })
   async login(input: LoginInput): Promise<ApiResult<LoginResponse>> {
     if (USE_MOCK) {
       await sleep();
-      // Credentials de test : n'importe quel n° + password "Test@1234"
       if (input.password === 'Test@1234') {
         return {
           ok: true,
@@ -115,24 +105,21 @@ export const authService = {
       }
       return { ok: false, error: 'Identifiants incorrects.' };
     }
-    return post('/api/auth/login', {
+    return post<LoginResponse>('/api/auth/login', {
       telephone:   input.telephone,
       password:    input.password,
       device_name: 'EauLaMaman-Mobile',
     });
   },
 
-  /** Demande de réinitialisation (lookup par téléphone) */
   async forgotLookup(telephone: string): Promise<ApiResult<{ sent: boolean }>> {
     if (USE_MOCK) {
       await sleep();
-      // Réponse neutre — ne révèle pas si le compte existe
       return { ok: true, data: { sent: true } };
     }
     return post('/api/auth/password/lookup', { telephone });
   },
 
-  /** Vérifie OTP reset */
   async forgotVerifyOtp(telephone: string, code: string): Promise<ApiResult<OtpVerifyResponse>> {
     if (USE_MOCK) {
       await sleep();
@@ -142,7 +129,6 @@ export const authService = {
     return post('/api/auth/password/verify', { telephone, code });
   },
 
-  /** Nouveau mot de passe */
   async resetPassword(telephone: string, password: string, passwordConfirmation: string): Promise<ApiResult<{ message: string }>> {
     if (USE_MOCK) {
       await sleep();
@@ -152,4 +138,4 @@ export const authService = {
   },
 };
 
-export type { AuthSession };
+export type { AuthSession } from '../types/auth.types';
