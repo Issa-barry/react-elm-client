@@ -37,6 +37,7 @@ const MOCK_VEHICULES: VehiculeApi[] = [
     is_active: true,
     photo_url: null,
     role: 'proprietaire',
+    en_livraison: false,
   },
   {
     id: 'mock-2',
@@ -47,6 +48,7 @@ const MOCK_VEHICULES: VehiculeApi[] = [
     is_active: true,
     photo_url: null,
     role: 'livreur',
+    en_livraison: true,
   },
 ];
 

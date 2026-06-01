@@ -65,9 +65,10 @@ function VehiculeCard({ vehicule }: Readonly<{ vehicule: VehiculeApi }>) {
       <View style={styles.infos}>
         <View style={styles.infosTop}>
           <Text style={styles.nom} numberOfLines={1}>{vehicule.nom}</Text>
-          <View style={[styles.badge, vehicule.is_active ? styles.badgeActif : styles.badgeInactif]}>
-            <Text style={[styles.badgeText, vehicule.is_active ? styles.badgeActifText : styles.badgeInactifText]}>
-              {vehicule.is_active ? 'Actif' : 'Inactif'}
+          <View style={[styles.badge, vehicule.en_livraison ? styles.badgeLivraison : styles.badgeRepos]}>
+            <View style={[styles.badgeDot, vehicule.en_livraison ? styles.badgeLivraisonDot : styles.badgeReposDot]} />
+            <Text style={[styles.badgeText, vehicule.en_livraison ? styles.badgeLivraisonText : styles.badgeReposText]}>
+              {vehicule.en_livraison ? 'En livraison' : 'Au repos'}
             </Text>
           </View>
         </View>
@@ -240,12 +241,17 @@ const styles = StyleSheet.create({
   metaValue:{ fontSize: 13, fontWeight: '600', color: Colors.text },
   metaDivider: { width: 1, height: 28, backgroundColor: slate[200] },
 
-  badge:          { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
-  badgeText:      { fontSize: 12, fontWeight: '600' },
-  badgeActif:     { backgroundColor: '#dcfce7' },
-  badgeActifText: { color: '#16a34a' },
-  badgeInactif:   { backgroundColor: '#fee2e2' },
-  badgeInactifText: { color: '#dc2626' },
+  badge:    { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20 },
+  badgeDot: { width: 7, height: 7, borderRadius: 4 },
+  badgeText:{ fontSize: 12, fontWeight: '600' },
+
+  badgeLivraison:    { backgroundColor: '#eff6ff' },
+  badgeLivraisonDot: { backgroundColor: Colors.primary },
+  badgeLivraisonText:{ color: Colors.primary },
+
+  badgeRepos:    { backgroundColor: slate[100] },
+  badgeReposDot: { backgroundColor: slate[400] },
+  badgeReposText:{ color: slate[500] },
   chevron:        { fontSize: 22, color: slate[300] },
 
   centerBox:  { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 12 },

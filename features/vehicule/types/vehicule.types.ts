@@ -10,4 +10,5 @@ export interface VehiculeApi {
   is_active: boolean;
   photo_url: string | null;
   role: RoleVehicule;       // rôle de l'utilisateur sur ce véhicule
+  en_livraison: boolean;    // true = actuellement en transit
 }
