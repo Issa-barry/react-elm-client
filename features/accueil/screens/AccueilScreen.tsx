@@ -11,7 +11,7 @@ import { useGainsMine } from '@/features/gains/hooks/useGainsMine';
 import GainsCarousel from '../components/GainsCarousel';
 import SoldeVehicules from '../components/SoldeVehicules';
 
-const QR_SIZE            = 140;
+const QR_SIZE            = 90;
 const QR_WRAPPER_PADDING = 12;
 const QR_OVERLAP         = QR_SIZE / 2;
 const HEADER_HEIGHT      = 140;
@@ -80,7 +80,7 @@ export default function AccueilScreen() {
         <View style={styles.qrWrapper}>
           {userLoading
             ? <View style={styles.qrPlaceholder}><ActivityIndicator color={Colors.primary} /></View>
-            : <QRCode value={qrData} size={QR_SIZE} color="#ffffff" backgroundColor={Colors.primary} />
+            : <QRCode value={qrData} size={QR_SIZE} color="#000000" backgroundColor="#ffffff" />
           }
         </View>
       </View>

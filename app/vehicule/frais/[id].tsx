@@ -1,4 +1,5 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { HeaderBackButton } from '@/shared/components/HeaderBackButton';
 import VehiculeFraisScreen from '@/features/vehicule/screens/VehiculeFraisScreen';
 
 export default function VehiculeFraisRoute() {
@@ -13,7 +14,8 @@ export default function VehiculeFraisRoute() {
       <Stack.Screen
         options={{
           title: nom ?? 'Frais',
-          headerBackTitle: 'Retour',
+          headerLeft: HeaderBackButton,
+          headerBackVisible: false,
         }}
       />
       <VehiculeFraisScreen

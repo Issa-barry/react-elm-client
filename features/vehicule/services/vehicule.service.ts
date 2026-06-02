@@ -19,7 +19,7 @@ async function authGet<T>(path: string): Promise<ApiResult<T>> {
     const json = await res.json();
     if (res.status === 401) return { ok: false, error: 'Session expirée. Reconnectez-vous.' };
     if (!res.ok) return { ok: false, error: json.message ?? 'Erreur serveur.' };
-    return { ok: true, data: json as T };
+    return { ok: true, data: (json.data ?? json) as T };
   } catch {
     return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };
   }
@@ -29,7 +29,7 @@ async function authGet<T>(path: string): Promise<ApiResult<T>> {
 
 const MOCK_VEHICULES: VehiculeApi[] = [
   {
-    id: 'mock-1',
+    id: '1',
     nom: 'Nen Dow',
     immatriculation: 'RC-001-GN',
     type: 'Camion',
@@ -40,10 +40,10 @@ const MOCK_VEHICULES: VehiculeApi[] = [
     en_livraison: false,
   },
   {
-    id: 'mock-2',
+    id: '2',
     nom: 'Baba Ousou',
     immatriculation: 'VN-001-GN',
-    type: 'Minibus',
+    type: 'Vanne',
     capacite: 150,
     is_active: true,
     photo_url: null,
@@ -62,6 +62,6 @@ export const vehiculeService = {
     }
 
     // Le backend retourne directement un tableau JSON (pas d'enveloppe)
-    return authGet<VehiculeApi[]>('/api/vehicules/mine');
+    return authGet<VehiculeApi[]>('/api/v1/mobile/vehicules/mine');
   },
 };

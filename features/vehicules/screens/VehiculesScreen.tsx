@@ -21,8 +21,11 @@ import type { VehiculeApi } from '@/features/vehicule/types/vehicule.types';
 
 const TYPE_ICONE: Record<string, string> = {
   Camion:   '🚚',
-  Minibus:  '🚐',
+  Vanne:    '🚐',
+  Moto:     '🏍️',
   Tricycle: '🛺',
+  'Pick-up': '🛻',
+  Autre:    '🚗',
 };
 
 function icone(type: string) {
@@ -51,7 +54,7 @@ function VehiculeIcon({ photoUrl, type }: Readonly<{ photoUrl: string | null; ty
 function VehiculeCard({ vehicule }: Readonly<{ vehicule: VehiculeApi }>) {
   function handlePress() {
     router.push({
-      pathname: `/vehicule/frais/${vehicule.id}`,
+      pathname: `/vehicule/${vehicule.id}`,
       params: { nom: vehicule.nom, immatriculation: vehicule.immatriculation },
     });
   }

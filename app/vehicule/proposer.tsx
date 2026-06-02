@@ -1,11 +1,16 @@
 import { Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors, slate } from '@/shared/constants/theme';
+import { HeaderBackButton } from '@/shared/components/HeaderBackButton';
 
 export default function ProposerVehiculeRoute() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Proposer un véhicule', headerBackTitle: 'Retour' }} />
+      <Stack.Screen options={{
+        title: 'Proposer un véhicule',
+        headerLeft: HeaderBackButton,
+        headerBackVisible: false,
+      }} />
       <View style={styles.container}>
         <Text style={styles.icon}>🚚</Text>
         <Text style={styles.titre}>Formulaire à venir</Text>

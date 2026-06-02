@@ -1,6 +1,6 @@
 import { secureStorage } from '@/features/auth/services/secure-storage.service';
 import type { ApiResult } from '@/features/auth/types/auth.types';
-import type { CommissionVehicule } from '../types/commission.types';
+import type { FraisApi } from '../types/frais.types';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 const USE_MOCK = !BASE_URL;
@@ -23,17 +23,16 @@ async function authGet<T>(path: string): Promise<ApiResult<T>> {
   }
 }
 
-const MOCK: CommissionVehicule[] = [
-  { id: 'cp-1', reference: 'VT-00012-F2Y', date: '2026-06-01T10:00:00Z', montant_net: 81_000, montant_verse: 0,      montant_restant: 81_000,  statut: 'en_attente', mois: 'Juin 2026' },
-  { id: 'cp-2', reference: 'VT-00001-6R9', date: '2026-05-19T08:00:00Z', montant_net: 270_000, montant_verse: 71_000, montant_restant: 199_000, statut: 'en_attente', mois: 'Mai 2026'  },
+const MOCK: FraisApi[] = [
+  { id: 'f1', date: '2026-06-01', montant: 50_000, type_code: 'carburant', type_label: 'Carburant', statut: 'approuve', commentaire: null, mois: 'Juin 2026' },
 ];
 
-export const commissionService = {
-  async getCommissionsVehicule(vehiculeId: string): Promise<ApiResult<CommissionVehicule[]>> {
+export const fraisService = {
+  async getFraisVehicule(vehiculeId: string): Promise<ApiResult<FraisApi[]>> {
     if (USE_MOCK) {
       await new Promise<void>(r => setTimeout(r, 600));
       return { ok: true, data: MOCK };
     }
-    return authGet<CommissionVehicule[]>(`/api/v1/mobile/vehicules/${vehiculeId}/commissions`);
+    return authGet<FraisApi[]>(`/api/v1/mobile/vehicules/${vehiculeId}/frais`);
   },
 };
