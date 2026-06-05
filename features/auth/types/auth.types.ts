@@ -36,6 +36,7 @@ export interface AuthUser {
   nom: string;
   telephone: string;
   roles: UserRole[];
+  qr_payload?: string | null;
 }
 
 export interface AuthSession {

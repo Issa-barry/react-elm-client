@@ -1,5 +1,5 @@
-import { ActivityIndicator, AppState, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCallback, useEffect } from 'react';
+import { ActivityIndicator, AppState, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect } from 'expo-router';
@@ -8,10 +8,12 @@ import { Colors } from '@/shared/constants/theme';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useGainsMine } from '@/features/gains/hooks/useGainsMine';
+import { useQrPayload } from '../hooks/useQrPayload';
 import GainsCarousel from '../components/GainsCarousel';
 import SoldeVehicules from '../components/SoldeVehicules';
 
 const QR_SIZE            = 90;
+const QR_ZOOM_SIZE       = 240;
 const QR_WRAPPER_PADDING = 12;
 const QR_OVERLAP         = QR_SIZE / 2;
 const HEADER_HEIGHT      = 140;
@@ -29,14 +31,16 @@ export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
   const { logout } = useLogout();
   const { user, loading: userLoading } = useCurrentUser();
+  const [qrZoomed, setQrZoomed] = useState(false);
   const { gains, loading: gainsLoading, refreshing, error: gainsError, load, refetch } = useGainsMine();
+  const { qrPayload, loading: qrLoading, load: loadQr } = useQrPayload();
 
   const nom    = user ? `${user.prenom} ${user.nom}` : '';
   const phone  = user?.telephone ?? '';
-  const qrData = user?.id ?? 'eau-la-maman';
+  const qrData = qrPayload ?? user?.id ?? 'eau-la-maman';
 
   // Chargement initial
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); loadQr(); }, [load, loadQr]);
 
   // Rechargement à chaque retour sur cet onglet
   useFocusEffect(
@@ -77,13 +81,31 @@ export default function AccueilScreen() {
 
       {/* QR code flottant */}
       <View style={styles.qrAnchor}>
-        <View style={styles.qrWrapper}>
-          {userLoading
+        <TouchableOpacity
+          style={styles.qrWrapper}
+          onPress={() => !userLoading && setQrZoomed(true)}
+          activeOpacity={0.8}
+          accessibilityLabel="Agrandir le QR code">
+          {(userLoading || qrLoading)
             ? <View style={styles.qrPlaceholder}><ActivityIndicator color={Colors.primary} /></View>
             : <QRCode value={qrData} size={QR_SIZE} color="#000000" backgroundColor="#ffffff" />
           }
-        </View>
+        </TouchableOpacity>
       </View>
+
+      {/* Modal zoom QR */}
+      <Modal
+        visible={qrZoomed}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQrZoomed(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setQrZoomed(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            {!qrLoading && <QRCode value={qrData} size={QR_ZOOM_SIZE} color="#000000" backgroundColor="#ffffff" />}
+            <Text style={styles.modalHint}>Appuyez en dehors pour fermer</Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Infos utilisateur */}
       <View style={[styles.content, { paddingTop: QR_BELOW_HEADER + 24 }]}>
@@ -143,6 +165,25 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   qrPlaceholder:   { width: QR_SIZE, height: QR_SIZE, alignItems: 'center', justifyContent: 'center' },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCard: {
+    backgroundColor: '#ffffff',
+    padding: 28,
+    borderRadius: 20,
+    alignItems: 'center',
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  modalHint: { fontSize: 12, color: '#9ca3af' },
   content:         { alignItems: 'center', paddingHorizontal: 24, gap: 6 },
   name:            { fontSize: 24, fontWeight: '700', color: Colors.text, textAlign: 'center' },
   phone:           { fontSize: 15, color: Colors.textMuted, textAlign: 'center' },

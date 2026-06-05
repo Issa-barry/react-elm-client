@@ -56,9 +56,10 @@ const MOCK_CLIENT: ClientScan = {
 };
 
 // ─── Détection du type de QR ─────────────────────────────────────────────────
-
+// Les références client ont le format CLI-YYYYMMDD-####.
+// Tout autre contenu (numérique OU ULID alphanumérique) est un userId.
 function isUserId(raw: string): boolean {
-  return /^\d+$/.test(raw.trim());
+  return !raw.trim().toUpperCase().startsWith('CLI-');
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────
@@ -69,13 +70,13 @@ export const scanService = {
 
     if (USE_MOCK) {
       await new Promise<void>(r => setTimeout(r, 700));
+      if (!isUserId(value) && value !== MOCK_CLIENT.reference) {
+        return { ok: false, error: 'QR code non reconnu.' };
+      }
       if (isUserId(value)) {
         return { ok: true, data: { type: 'user', data: MOCK_USER } };
       }
-      if (value === MOCK_CLIENT.reference) {
-        return { ok: true, data: { type: 'client', data: MOCK_CLIENT } };
-      }
-      return { ok: false, error: 'QR code non reconnu.' };
+      return { ok: true, data: { type: 'client', data: MOCK_CLIENT } };
     }
 
     if (isUserId(value)) {
