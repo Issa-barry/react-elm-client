@@ -18,14 +18,14 @@ type Filtre = 'tous' | StatutCommission;
 const FILTRES: { key: Filtre; label: string }[] = [
   { key: 'tous',        label: 'Tous' },
   { key: 'paye',        label: 'Payé' },
+  { key: 'partiel',     label: 'Partiel' },
   { key: 'en_attente',  label: 'En attente' },
-  { key: 'annule',      label: 'Annulé' },
 ];
 
 const STATUT_CONFIG: Record<StatutCommission, { label: string; bg: string; text: string }> = {
   paye:       { label: 'Payé',       bg: '#dcfce7', text: '#16a34a' },
+  partiel:    { label: 'Partiel',    bg: '#fef3c7', text: '#d97706' },
   en_attente: { label: 'En attente', bg: '#fef9c3', text: '#ca8a04' },
-  annule:     { label: 'Annulé',     bg: '#fee2e2', text: '#dc2626' },
 };
 
 // ─── Composants ──────────────────────────────────────────────────────────────

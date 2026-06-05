@@ -1,4 +1,4 @@
-export type StatutCommission = 'paye' | 'en_attente' | 'annule';
+export type StatutCommission = 'paye' | 'en_attente' | 'partiel';
 
 export interface CommissionVehicule {
   id: string;
