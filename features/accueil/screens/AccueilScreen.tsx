@@ -49,22 +49,21 @@ export default function AccueilScreen() {
 
   useEffect(() => { load(); loadQr(); }, [load, loadQr]);
 
+  const pollNotifs = useCallback(async () => {
+    try {
+      const res = await fetchNotifications();
+      setUnreadCount(res.unread_count);
+    } catch { /* silencieux */ }
+  }, []);
+
   useFocusEffect(
-    useCallback(() => { refetch(); }, [refetch])
+    useCallback(() => {
+      refetch();
+      pollNotifs();
+    }, [refetch, pollNotifs])
   );
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function pollNotifs() {
-      try {
-        const res = await fetchNotifications();
-        if (!cancelled) setUnreadCount(res.unread_count);
-      } catch { /* silencieux */ }
-    }
-
-    pollNotifs();
-
     const sub = AppState.addEventListener('change', next => {
       if (appStateRef.current.match(/inactive|background/) && next === 'active') {
         refetch();
@@ -72,9 +71,8 @@ export default function AccueilScreen() {
       }
       appStateRef.current = next;
     });
-
-    return () => { cancelled = true; sub.remove(); };
-  }, [refetch]);
+    return () => sub.remove();
+  }, [refetch, pollNotifs]);
 
   return (
     <ScrollView
