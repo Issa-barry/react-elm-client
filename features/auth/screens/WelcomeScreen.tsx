@@ -28,11 +28,11 @@ export default function WelcomeScreen() {
 
         {/* Logo badge en haut à gauche */}
         <View style={[styles.heroTop, { paddingTop: insets.top + 16 }]}>
-          <View style={styles.logoBox}>
+          {/* <View style={styles.logoBox}>
             <Svg width={32} height={32} viewBox="0 0 32.25 32">
               <Path fillRule="evenodd" clipRule="evenodd" d={LOGO_PATH} fill="white" />
             </Svg>
-          </View>
+          </View> */}
         </View>
 
         {/* Vague blanche en bas du hero */}
