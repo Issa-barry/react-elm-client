@@ -13,6 +13,9 @@ jest.mock('@/features/auth/hooks/useLogout', () => ({
 jest.mock('@/features/gains/hooks/useGainsMine', () => ({
   useGainsMine: jest.fn(),
 }));
+jest.mock('../../hooks/useQrPayload', () => ({
+  useQrPayload: jest.fn(),
+}));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));
@@ -36,9 +39,11 @@ jest.mock('../../components/SoldeVehicules', () => {
 
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useGainsMine } from '@/features/gains/hooks/useGainsMine';
+import { useQrPayload } from '../../hooks/useQrPayload';
 
 const mockUseCurrentUser = useCurrentUser as jest.Mock;
 const mockUseGainsMine   = useGainsMine   as jest.Mock;
+const mockUseQrPayload   = useQrPayload   as jest.Mock;
 
 const USER_FIXTURE = { id: 'user-42', prenom: 'Moussa', nom: 'CAMARA', telephone: '+224621234567' };
 
@@ -53,6 +58,7 @@ function setupMocks(overrides?: { userLoading?: boolean; user?: any }) {
     loading: overrides?.userLoading ?? false,
   });
   mockUseGainsMine.mockReturnValue(GAINS_IDLE);
+  mockUseQrPayload.mockReturnValue({ qrPayload: null, loading: false, load: jest.fn() });
 }
 
 describe('AccueilScreen — zoom QR code', () => {

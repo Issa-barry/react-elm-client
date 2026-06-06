@@ -144,6 +144,7 @@ export default function RegisterScreen() {
       <Pressable
         onPress={handleBack}
         android_ripple={null}
+        accessibilityLabel="Retour"
         style={[styles.backBtn, { top: insets.top + 10 }]}>
         <Ionicons name="arrow-back" size={20} color="#111111" />
       </Pressable>
