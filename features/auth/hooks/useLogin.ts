@@ -14,6 +14,7 @@ interface LoginState {
   loading: boolean;
   errors: Record<string, string>;
   globalError: string;
+  errorCode: string;
 }
 
 const INITIAL: LoginState = {
@@ -24,13 +25,14 @@ const INITIAL: LoginState = {
   loading:        false,
   errors:         {},
   globalError:    '',
+  errorCode:      '',
 };
 
 export function useLogin() {
   const [state, setState] = useState<LoginState>(INITIAL);
 
   const set = useCallback(<K extends keyof LoginState>(key: K, value: LoginState[K]) => {
-    setState(prev => ({ ...prev, [key]: value, errors: { ...prev.errors, [key]: '' }, globalError: '' }));
+    setState(prev => ({ ...prev, [key]: value, errors: { ...prev.errors, [key]: '' }, globalError: '', errorCode: '' }));
   }, []);
 
   const setCountry = useCallback((code: string, prefix: string) => {
@@ -53,7 +55,7 @@ export function useLogin() {
     setState(prev => ({ ...prev, loading: false }));
 
     if (!result.ok) {
-      setState(prev => ({ ...prev, globalError: result.error }));
+      setState(prev => ({ ...prev, globalError: result.error, errorCode: result.code ?? '' }));
       return;
     }
 

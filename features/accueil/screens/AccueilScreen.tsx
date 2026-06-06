@@ -5,6 +5,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect } from 'expo-router';
 
 import { Colors } from '@/shared/constants/theme';
+import { IconSymbol } from '@/shared/components/ui/icon-symbol';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
 import { useGainsMine } from '@/features/gains/hooks/useGainsMine';
@@ -72,7 +73,13 @@ export default function AccueilScreen() {
       {/* Header bleu */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity
-          style={[styles.logoutBtn, { top: insets.top + 12 }]}
+          style={[styles.headerBtn, { top: insets.top + 12, right: 60 }]}
+          onPress={() => {}}
+          accessibilityLabel="Notifications">
+          <IconSymbol name="bell.fill" size={20} color="#ffffff" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.headerBtn, { top: insets.top + 12, right: 16 }]}
           onPress={logout}
           accessibilityLabel="Se déconnecter">
           <Text style={styles.logoutIcon}>⏻</Text>
@@ -139,8 +146,8 @@ export default function AccueilScreen() {
 const styles = StyleSheet.create({
   scroll:  { backgroundColor: Colors.background },
   header:  { height: HEADER_HEIGHT, backgroundColor: Colors.primary },
-  logoutBtn: {
-    position: 'absolute', right: 16,
+  headerBtn: {
+    position: 'absolute',
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',

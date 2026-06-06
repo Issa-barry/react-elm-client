@@ -15,6 +15,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'dollarsign.circle.fill': 'attach-money',
   'car.fill': 'directions-car',
+  'shippingbox.fill': 'local-shipping',
+  'bell.fill': 'notifications',
 } as IconMapping;
 
 export function IconSymbol({

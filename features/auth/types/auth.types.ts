@@ -123,4 +123,4 @@ export interface ForgotPasswordData {
 // ─── Résultat API générique ──────────────────────────────────────────────────
 export type ApiResult<T> =
   | { ok: true; data: T }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code?: string };

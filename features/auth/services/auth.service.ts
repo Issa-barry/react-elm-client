@@ -25,7 +25,7 @@ async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
     });
     clearTimeout(timer);
     const json = await res.json();
-    if (!res.ok) return { ok: false, error: json.message ?? json.error ?? 'Erreur serveur.' };
+    if (!res.ok) return { ok: false, error: json.message ?? json.error ?? 'Erreur serveur.', code: json.code };
     return { ok: true, data: json as T };
   } catch (e: unknown) {
     clearTimeout(timer);

@@ -53,8 +53,17 @@ export default function LoginScreen() {
           />
 
           {state.globalError ? (
-            <View style={styles.globalError}>
-              <Text style={styles.globalErrorText}>{state.globalError}</Text>
+            <View style={[
+              styles.errorBox,
+              state.errorCode === 'account_blocked' && styles.errorBoxBlocked,
+              state.errorCode === 'email_not_verified' && styles.errorBoxWarning,
+            ]}>
+              <Text style={[
+                styles.errorText,
+                state.errorCode === 'email_not_verified' && styles.errorTextWarning,
+              ]}>
+                {state.globalError}
+              </Text>
             </View>
           ) : null}
 
@@ -94,12 +103,21 @@ const styles = StyleSheet.create({
 
   form: { gap: 16 },
 
-  globalError: {
+  errorBox: {
     backgroundColor: '#fef2f2',
     borderWidth: 1, borderColor: '#fecaca',
     borderRadius: 10, padding: 12,
   },
-  globalErrorText: { fontSize: 14, color: '#dc2626', textAlign: 'center' },
+  errorBoxBlocked: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+  },
+  errorBoxWarning: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fcd34d',
+  },
+  errorText: { fontSize: 14, color: '#dc2626', textAlign: 'center' },
+  errorTextWarning: { color: '#92400e' },
 
   btn: {
     height: 52, borderRadius: 14,
