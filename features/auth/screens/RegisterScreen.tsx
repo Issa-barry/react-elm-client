@@ -6,14 +6,11 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, slate } from '@/shared/constants/theme';
-import { AppLogo } from '@/shared/components/AppLogo';
+import { CloseButton } from '@/shared/components/CloseButton';
 import { useRegister, TOTAL_STEPS } from '../hooks/useRegister';
 import { PhoneInput }    from '../components/PhoneInput';
 import { AuthInput }     from '../components/AuthInput';
 import { PasswordInput } from '../components/PasswordInput';
-import { StepIndicator } from '../components/StepIndicator';
-
-const STEP_LABELS = ['Téléphone', 'Identité', 'Email & Mot de passe'];
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -62,21 +59,17 @@ export default function RegisterScreen() {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <CloseButton />
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 32 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
 
-        {/* En-tête */}
-        <View style={styles.header}>
-          <AppLogo size={64} />
+        {/* Titre centré sur la même ligne que la flèche retour */}
+        <View style={styles.headerRow}>
           <Text style={styles.title}>Créer un compte</Text>
-          <Text style={styles.subtitle}>Étape {state.step} sur {TOTAL_STEPS}</Text>
         </View>
-
-        {/* Indicateur de progression */}
-        <StepIndicator current={state.step} total={TOTAL_STEPS} labels={STEP_LABELS} />
 
         {/* Erreur globale */}
         {state.globalError ? (
@@ -88,8 +81,8 @@ export default function RegisterScreen() {
         {/* ── Étape 1 : Téléphone ───────────────────────────────────────── */}
         {state.step === 1 && (
           <View style={styles.stepCard}>
-            <Text style={styles.stepTitle}>Votre numéro de téléphone</Text>
-            <Text style={styles.stepHint}>Entrez votre numéro pour créer votre compte.</Text>
+            {/* <Text style={styles.stepTitle}>Votre numéro de téléphone</Text> */}
+            {/* <Text style={styles.stepHint}>Entrez votre numéro pour créer votre compte.</Text> */}
             <PhoneInput
               codePays={state.codePays}
               prefix={state.prefix}
@@ -220,11 +213,16 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   flex:    { flex: 1, backgroundColor: Colors.background },
   scroll:  { flex: 1 },
-  content: { paddingHorizontal: 24, gap: 24 },
+  content: { paddingHorizontal: 24, gap: 16 },
 
-  header:   { alignItems: 'center', gap: 4 },
-  title:    { fontSize: 24, fontWeight: '700', color: Colors.text },
-  subtitle: { fontSize: 14, color: slate[400] },
+  // Titre aligné sur la même ligne que le CloseButton (height: 36, même que le cercle)
+  headerRow: {
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title:    { fontSize: 20, fontWeight: '700', color: Colors.text },
+  subtitle: { fontSize: 14, color: slate[400], textAlign: 'center' },
 
   globalError: {
     backgroundColor: '#fef2f2', borderWidth: 1,

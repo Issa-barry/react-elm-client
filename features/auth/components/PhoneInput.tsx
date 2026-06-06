@@ -14,7 +14,7 @@ function flagEmoji(code: string): string {
 }
 
 interface Props {
-  label?: string;
+  label?: string; 
   codePays: string;
   prefix: string;
   telephoneLocal: string;

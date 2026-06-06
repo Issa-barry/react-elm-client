@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, blue, slate } from '@/shared/constants/theme';
 import { AppLogo } from '@/shared/components/AppLogo';
+import { CloseButton } from '@/shared/components/CloseButton';
 import { useLogin } from '../hooks/useLogin';
 import { AuthInput } from '../components/AuthInput';
 import { PhoneInput } from '../components/PhoneInput';
@@ -18,6 +19,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <CloseButton />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 32 }]}
@@ -75,13 +77,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Inscription */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Pas encore de compte ?</Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')} accessibilityLabel="Créer un compte">
-            <Text style={styles.footerLink}> Créer un compte</Text>
-          </TouchableOpacity>
-        </View>
 
       </ScrollView>
     </KeyboardAvoidingView>
@@ -118,7 +113,4 @@ const styles = StyleSheet.create({
   link:     { alignItems: 'center', paddingVertical: 4 },
   linkText: { color: Colors.primary, fontSize: 14, fontWeight: '600' },
 
-  footer:     { flexDirection: 'row', justifyContent: 'center' },
-  footerText: { fontSize: 14, color: slate[500] },
-  footerLink: { fontSize: 14, color: Colors.primary, fontWeight: '700' },
 });

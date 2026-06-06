@@ -53,7 +53,7 @@ export default function WelcomeScreen() {
           <View style={styles.subtitleRow}>
             <View style={styles.bullet} />
             <Text style={styles.subtitleText}>
-              Proposez votre véhicule à ELM et générez des revenus
+              Proposez votre véhicule et générez des revenus
             </Text>
           </View>
           <View style={styles.subtitleRow}>
