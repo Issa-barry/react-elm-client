@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 
 import { Colors, slate } from '@/shared/constants/theme';
@@ -24,10 +24,10 @@ const STEP_TITLES = [
 ];
 
 const MAIL_APPS = [
-  { label: 'Gmail',             url: 'googlegmail://'  },
-  { label: 'Microsoft Outlook', url: 'ms-outlook://'   },
-  { label: 'Mail',              url: 'mailto:'         },
-];
+  { label: 'Gmail',             url: 'googlegmail://', icon: 'gmail',              lib: 'mci', color: '#EA4335' },
+  { label: 'Microsoft Outlook', url: 'ms-outlook://',  icon: 'microsoft-outlook',  lib: 'mci', color: '#0078D4' },
+  { label: 'Mail',              url: 'mailto:',        icon: 'mail',               lib: 'ion', color: '#007AFF' },
+] as const;
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -110,6 +110,10 @@ export default function RegisterScreen() {
                     <TouchableOpacity
                       style={styles.mailOption}
                       onPress={() => openMailApp(app.url)}>
+                      {app.lib === 'mci'
+                        ? <MaterialCommunityIcons name={app.icon as never} size={26} color={app.color} />
+                        : <Ionicons name={app.icon as never} size={26} color={app.color} />
+                      }
                       <Text style={styles.mailOptionText}>{app.label}</Text>
                     </TouchableOpacity>
                   </View>
@@ -427,8 +431,10 @@ const styles = StyleSheet.create({
   },
   mailOption: {
     height: 56,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 12,
   },
   mailOptionText: {
     fontSize: 17,
