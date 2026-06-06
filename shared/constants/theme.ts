@@ -38,7 +38,7 @@ export const Colors = {
   primaryDark:      blue[700],   // #1d4ed8
 
   // fonds
-  background:       '#e8edf5',   // fond général (inspiré PayPal)
+  background:       '#e8edf5',   // fond général (gris-bleu clair)
   surface:          '#ffffff',   // cartes / composants sur le fond
   overlay:          '#ffffff',
   surfaceAlt:       slate[50],   // fond alternatif (inputs verrouillés, en-têtes)
@@ -64,6 +64,13 @@ export const Colors = {
   successBg:        '#dcfce7',
   infoBg:           '#eff6ff',
 
+  // texte sur fond primary (boutons)
+  primaryFg:        '#ffffff',
+
+  // header de l'écran Accueil
+  headerBg:         blue[600],   // primary en light mode
+  headerFg:         '#ffffff',   // icônes/texte sur le header
+
   // tab bar
   tabActive:        blue[600],
   tabInactive:      slate[400],
@@ -71,7 +78,7 @@ export const Colors = {
   // compatibilité ancien thème (ne pas casser les imports)
   light: {
     text:           slate[950],
-    background:     '#e8edf5',
+    background:     '#ffffff',
     tint:           blue[600],
     icon:           slate[500],
     tabIconDefault: slate[400],
@@ -85,18 +92,18 @@ export const DarkColors = {
   primaryLight: blue[900],
   primaryDark:  blue[300],
 
-  background:   slate[950],
-  surface:      slate[800],
-  overlay:      slate[800],
-  surfaceAlt:   slate[700],   // inputs verrouillés, en-têtes de table
+  background:   slate[950],   // #020617 — fond général très sombre
+  surface:      slate[900],   // #0f172a — cartes (identique aux cartes web dark)
+  overlay:      slate[900],
+  surfaceAlt:   slate[800],   // #1e293b — inputs verrouillés, en-têtes de table
   cardActive:   blue[900],    // item actif en mode sombre
 
   text:         slate[50],
   textMuted:    slate[400],
   textLight:    slate[500],
 
-  border:       slate[700],
-  borderLight:  slate[800],
+  border:       slate[700],   // #334155 — bordures visibles sur fond slate[900]
+  borderLight:  slate[800],   // #1e293b — séparateurs subtils entre lignes
 
   danger:       '#ef4444',
   warning:      '#f59e0b',
@@ -108,12 +115,19 @@ export const DarkColors = {
   successBg:    '#052e16',
   infoBg:       '#172554',
 
+  // texte sur fond primary (bleu clair → texte sombre)
+  primaryFg:    slate[950],
+
+  // header sombre en dark mode
+  headerBg:     slate[900],    // fond du header = surface sombre
+  headerFg:     slate[50],     // icônes/texte blancs sur fond sombre
+
   tabActive:    blue[400],
   tabInactive:  slate[500],
 
   light: {
     text:            slate[50],
-    background:      slate[950],
+    background:      slate[950],   // #020617
     tint:            blue[400],
     icon:            slate[400],
     tabIconDefault:  slate[500],

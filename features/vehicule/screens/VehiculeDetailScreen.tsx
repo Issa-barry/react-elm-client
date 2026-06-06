@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, blue, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { formatMontant, formatDate } from '@/shared/utils/format';
 import { useCommissionsVehicule } from '../hooks/useCommissionsVehicule';
 import type { CommissionVehicule, StatutCommission } from '../types/commission.types';
@@ -22,15 +22,20 @@ const FILTRES: { key: Filtre; label: string }[] = [
   { key: 'en_attente',  label: 'En attente' },
 ];
 
-const STATUT_CONFIG: Record<StatutCommission, { label: string; bg: string; text: string }> = {
-  paye:       { label: 'Payé',       bg: '#dcfce7', text: '#16a34a' },
-  partiel:    { label: 'Partiel',    bg: '#fef3c7', text: '#d97706' },
-  en_attente: { label: 'En attente', bg: '#fef9c3', text: '#ca8a04' },
-};
+function getStatutConfig(colors: ReturnType<typeof useTheme>['colors']): Record<StatutCommission, { label: string; bg: string; text: string }> {
+  return {
+    paye:       { label: 'Payé',       bg: colors.successBg, text: colors.success },
+    partiel:    { label: 'Partiel',    bg: colors.warningBg, text: colors.warning },
+    en_attente: { label: 'En attente', bg: colors.warningBg, text: colors.warning },
+  };
+}
 
 // ─── Composants ──────────────────────────────────────────────────────────────
 
 function FiltreChips({ actif, onChange }: Readonly<{ actif: Filtre; onChange: (f: Filtre) => void }>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtreList}>
       {FILTRES.map((f) => {
@@ -47,7 +52,11 @@ function FiltreChips({ actif, onChange }: Readonly<{ actif: Filtre; onChange: (f
 }
 
 function CommissionRow({ tx, isLast }: Readonly<{ tx: CommissionVehicule; isLast: boolean }>) {
-  const statut = STATUT_CONFIG[tx.statut];
+  const { colors } = useTheme();
+  const styles  = useMemo(() => makeStyles(colors), [colors]);
+  const statutConfig = getStatutConfig(colors);
+  const statut  = statutConfig[tx.statut];
+
   return (
     <View>
       <View style={styles.txRow}>
@@ -71,12 +80,13 @@ function CommissionRow({ tx, isLast }: Readonly<{ tx: CommissionVehicule; isLast
 
 export default function VehiculeDetailScreen({ id, nom, immatriculation }: Readonly<Props>) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [filtre, setFiltre]       = useState<Filtre>('tous');
   const [moisActif, setMoisActif] = useState('tous');
 
   const { commissions, loading, error, refetch } = useCommissionsVehicule(id);
 
-  // Mois disponibles (ordre original = décroissant par date)
   const moisDisponibles = useMemo(
     () => [...new Set(commissions.map((c) => c.mois))],
     [commissions],
@@ -109,7 +119,7 @@ export default function VehiculeDetailScreen({ id, nom, immatriculation }: Reado
       contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={false} onRefresh={refetch} colors={[Colors.primary]} tintColor={Colors.primary} />
+        <RefreshControl refreshing={false} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />
       }>
 
       {/* Résumé véhicule */}
@@ -149,13 +159,13 @@ export default function VehiculeDetailScreen({ id, nom, immatriculation }: Reado
       {/* Contenu */}
       {loading && (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
 
       {!loading && error && (
         <View style={styles.empty}>
-          <Text style={[styles.emptyText, { color: '#dc2626' }]}>{error}</Text>
+          <Text style={[styles.emptyText, { color: colors.danger }]}>{error}</Text>
         </View>
       )}
 
@@ -184,43 +194,45 @@ export default function VehiculeDetailScreen({ id, nom, immatriculation }: Reado
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: Colors.background },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll: { flex: 1, backgroundColor: colors.background },
 
-  resumeCard: { backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 20, marginHorizontal: 16, marginTop: 16, borderRadius: 16, gap: 12 },
-  resumeNom:  { color: '#fff', fontSize: 18, fontWeight: '700' },
-  resumeImmat:{ color: 'rgba(255,255,255,0.75)', fontSize: 14 },
-  resumeStats:{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
-  resumeStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
-  resumeStatValue: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  resumeStatDivider:{ width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.25)' },
+    resumeCard:       { backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 20, marginHorizontal: 16, marginTop: 16, borderRadius: 16, gap: 12 },
+    resumeNom:        { color: '#fff', fontSize: 18, fontWeight: '700' },
+    resumeImmat:      { color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+    resumeStats:      { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
+    resumeStatLabel:  { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
+    resumeStatValue:  { color: '#fff', fontSize: 16, fontWeight: '700' },
+    resumeStatDivider:{ width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.25)' },
 
-  filtreList: { paddingHorizontal: 16, paddingVertical: 16, gap: 8 },
-  chip:       { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: Colors.surface, borderWidth: 1, borderColor: slate[200] },
-  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipLabel:  { fontSize: 13, fontWeight: '500', color: slate[500] },
-  chipLabelActive: { color: '#fff', fontWeight: '600' },
-  chipMois:   { backgroundColor: Colors.surface, borderColor: slate[200] },
-  chipMoisActive: { backgroundColor: blue[50], borderColor: Colors.primary },
-  chipLabelMoisActive: { color: Colors.primary, fontWeight: '600' },
+    filtreList:          { paddingHorizontal: 16, paddingVertical: 16, gap: 8 },
+    chip:                { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+    chipActive:          { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipLabel:           { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+    chipLabelActive:     { color: '#fff', fontWeight: '600' },
+    chipMois:            { backgroundColor: colors.surface, borderColor: colors.border },
+    chipMoisActive:      { backgroundColor: colors.cardActive, borderColor: colors.primary },
+    chipLabelMoisActive: { color: colors.primary, fontWeight: '600' },
 
-  groupe:    { marginTop: 8, paddingHorizontal: 16, gap: 8 },
-  moisHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  moisTitre: { fontSize: 15, fontWeight: '700', color: Colors.text },
-  moisTotal: { fontSize: 14, fontWeight: '600', color: Colors.primary },
+    groupe:    { marginTop: 8, paddingHorizontal: 16, gap: 8 },
+    moisHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    moisTitre: { fontSize: 15, fontWeight: '700', color: colors.text },
+    moisTotal: { fontSize: 14, fontWeight: '600', color: colors.primary },
 
-  txCard:    { backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: slate[200], overflow: 'hidden' },
-  txRow:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
-  txLeft:    { flex: 1, gap: 3 },
-  txRef:     { fontSize: 14, fontWeight: '600', color: Colors.text },
-  txDate:    { fontSize: 12, color: slate[400] },
-  txRight:   { alignItems: 'flex-end', gap: 4 },
-  txMontant: { fontSize: 14, fontWeight: '700', color: Colors.text },
-  badge:     { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
-  badgeText: { fontSize: 11, fontWeight: '600' },
-  separator: { height: 1, backgroundColor: slate[100], marginHorizontal: 16 },
+    txCard:    { backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+    txRow:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
+    txLeft:    { flex: 1, gap: 3 },
+    txRef:     { fontSize: 14, fontWeight: '600', color: colors.text },
+    txDate:    { fontSize: 12, color: colors.textMuted },
+    txRight:   { alignItems: 'flex-end', gap: 4 },
+    txMontant: { fontSize: 14, fontWeight: '700', color: colors.text },
+    badge:     { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
+    badgeText: { fontSize: 11, fontWeight: '600' },
+    separator: { height: 1, backgroundColor: colors.borderLight, marginHorizontal: 16 },
 
-  centerBox: { marginTop: 60, alignItems: 'center' },
-  empty:     { marginTop: 48, alignItems: 'center', paddingHorizontal: 24 },
-  emptyText: { fontSize: 15, color: slate[400], textAlign: 'center' },
-});
+    centerBox: { marginTop: 60, alignItems: 'center' },
+    empty:     { marginTop: 48, alignItems: 'center', paddingHorizontal: 24 },
+    emptyText: { fontSize: 15, color: colors.textMuted, textAlign: 'center' },
+  });
+}

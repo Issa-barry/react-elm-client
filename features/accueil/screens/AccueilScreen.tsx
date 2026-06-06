@@ -1,5 +1,5 @@
 import { ActivityIndicator, AppState, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect } from 'expo-router';
@@ -32,25 +32,24 @@ function formatPhone(phone: string): string {
 export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
   const { logout } = useLogout();
-  const { isDark, toggle: toggleTheme } = useTheme();
+  const { isDark, toggle: toggleTheme, colors } = useTheme();
   const { user, loading: userLoading } = useCurrentUser();
   const [qrZoomed, setQrZoomed] = useState(false);
   const { gains, loading: gainsLoading, refreshing, error: gainsError, load, refetch } = useGainsMine();
   const { qrPayload, loading: qrLoading, load: loadQr } = useQrPayload();
 
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const nom    = user ? `${user.prenom} ${user.nom}` : '';
   const phone  = user?.telephone ?? '';
   const qrData = qrPayload ?? user?.id ?? 'eau-la-maman';
 
-  // Chargement initial
   useEffect(() => { load(); loadQr(); }, [load, loadQr]);
 
-  // Rechargement à chaque retour sur cet onglet
   useFocusEffect(
     useCallback(() => { refetch(); }, [refetch])
   );
 
-  // Rechargement quand l'app revient au premier plan
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
       if (state === 'active') refetch();
@@ -67,8 +66,8 @@ export default function AccueilScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={refetch}
-          colors={[Colors.primary]}
-          tintColor={Colors.primary}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
         />
       }>
 
@@ -86,13 +85,13 @@ export default function AccueilScreen() {
           style={[styles.headerBtn, { top: insets.top + 12, right: 60 }]}
           onPress={() => {}}
           accessibilityLabel="Notifications">
-          <IconSymbol name="bell.fill" size={20} color="#ffffff" />
+          <IconSymbol name="bell.fill" size={20} color={colors.headerFg} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.headerBtn, { top: insets.top + 12, right: 16 }]}
           onPress={toggleTheme}
           accessibilityLabel={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}>
-          <IconSymbol name={isDark ? 'sun.max.fill' : 'moon.fill'} size={20} color="#ffffff" />
+          <IconSymbol name={isDark ? 'sun.max.fill' : 'moon.fill'} size={20} color={colors.headerFg} />
         </TouchableOpacity>
       </View>
 
@@ -104,7 +103,7 @@ export default function AccueilScreen() {
           activeOpacity={0.8}
           accessibilityLabel="Agrandir le QR code">
           {(userLoading || qrLoading)
-            ? <View style={styles.qrPlaceholder}><ActivityIndicator color={Colors.primary} /></View>
+            ? <View style={styles.qrPlaceholder}><ActivityIndicator color={colors.primary} /></View>
             : <QRCode value={qrData} size={QR_SIZE} color="#000000" backgroundColor="#ffffff" />
           }
         </TouchableOpacity>
@@ -127,7 +126,7 @@ export default function AccueilScreen() {
       {/* Infos utilisateur */}
       <View style={[styles.content, { paddingTop: QR_BELOW_HEADER + 24 }]}>
         {userLoading
-          ? <ActivityIndicator color={Colors.primary} />
+          ? <ActivityIndicator color={colors.primary} />
           : <>
               <Text style={styles.name}>{nom}</Text>
               <Text style={styles.phone}>{formatPhone(phone)}</Text>
@@ -135,12 +134,10 @@ export default function AccueilScreen() {
         }
       </View>
 
-      {/* Carousel des gains — données réelles */}
       <View style={styles.carouselSection}>
         <GainsCarousel gains={gains} loading={gainsLoading} />
       </View>
 
-      {/* Solde par véhicule — données réelles */}
       <View style={styles.soldeSection}>
         <SoldeVehicules
           parVehicule={gains?.par_vehicule ?? []}
@@ -153,57 +150,58 @@ export default function AccueilScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll:  { backgroundColor: Colors.background },
-  header:  { height: HEADER_HEIGHT, backgroundColor: Colors.primary },
-  headerBtn: {
-    position: 'absolute',
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoutIcon: { fontSize: 18, color: '#ffffff' },
-  qrAnchor: {
-    position: 'absolute',
-    top: HEADER_HEIGHT - QR_OVERLAP,
-    left: 0, right: 0,
-    alignItems: 'center',
-  },
-  qrWrapper: {
-    backgroundColor: Colors.background,
-    padding: QR_WRAPPER_PADDING,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#ffffff',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  qrPlaceholder:   { width: QR_SIZE, height: QR_SIZE, alignItems: 'center', justifyContent: 'center' },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalCard: {
-    backgroundColor: '#ffffff',
-    padding: 28,
-    borderRadius: 20,
-    alignItems: 'center',
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  modalHint: { fontSize: 12, color: '#9ca3af' },
-  content:         { alignItems: 'center', paddingHorizontal: 24, gap: 6 },
-  name:            { fontSize: 24, fontWeight: '700', color: Colors.text, textAlign: 'center' },
-  phone:           { fontSize: 15, color: Colors.textMuted, textAlign: 'center' },
-  carouselSection: { marginTop: 24 },
-  soldeSection:    { marginTop: 24 },
-});
+function makeStyles(colors: typeof Colors) {
+  return StyleSheet.create({
+    scroll:  { backgroundColor: colors.background },
+    header:  { height: HEADER_HEIGHT, backgroundColor: colors.headerBg },
+    headerBtn: {
+      position: 'absolute',
+      width: 36, height: 36, borderRadius: 18,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    logoutIcon: { fontSize: 18, color: colors.headerFg },
+    qrAnchor: {
+      position: 'absolute',
+      top: HEADER_HEIGHT - QR_OVERLAP,
+      left: 0, right: 0,
+      alignItems: 'center',
+    },
+    qrWrapper: {
+      backgroundColor: colors.surface,
+      padding: QR_WRAPPER_PADDING,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.headerBg,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 6,
+    },
+    qrPlaceholder:   { width: QR_SIZE, height: QR_SIZE, alignItems: 'center', justifyContent: 'center' },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.65)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modalCard: {
+      backgroundColor: colors.surface,
+      padding: 28,
+      borderRadius: 20,
+      alignItems: 'center',
+      gap: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 12,
+    },
+    modalHint: { fontSize: 12, color: colors.textMuted },
+    content:         { alignItems: 'center', paddingHorizontal: 24, gap: 6 },
+    name:            { fontSize: 24, fontWeight: '700', color: colors.text, textAlign: 'center' },
+    phone:           { fontSize: 15, color: colors.textMuted, textAlign: 'center' },
+    carouselSection: { marginTop: 24 },
+    soldeSection:    { marginTop: 24 },
+  });
+}

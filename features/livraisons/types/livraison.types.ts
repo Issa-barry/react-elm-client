@@ -1,7 +1,9 @@
+export type StatutLivraison = 'transit' | 'commande';
+
 export interface LivraisonEnCours {
   id: string;
   reference: string;
-  statut: string;
+  statut: StatutLivraison;
   statut_label: string;
   site_source: string;
   site_destination: string;

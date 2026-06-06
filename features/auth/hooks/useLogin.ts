@@ -5,6 +5,7 @@ import { DEFAULT_COUNTRY, buildE164, type LoginInput } from '../types/auth.types
 import { validateLogin } from '../validation/auth.validation';
 import { authService } from '../services/auth.service';
 import { secureStorage } from '../services/secure-storage.service';
+import { registerPushNotifications } from '@/features/notifications/services/notification.service';
 
 interface LoginState {
   codePays: string;
@@ -62,6 +63,7 @@ export function useLogin() {
     await secureStorage.saveToken(result.data.token);
     await secureStorage.saveUser(result.data.user);
     router.replace('/(tabs)');
+    registerPushNotifications().catch(console.warn);
   }, [state]);
 
   return { state, set, setCountry, submit };

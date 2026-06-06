@@ -1,17 +1,19 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, blue, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { AppLogo } from '@/shared/components/AppLogo';
 import { CloseButton } from '@/shared/components/CloseButton';
 import { useLogin } from '../hooks/useLogin';
-import { AuthInput } from '../components/AuthInput';
 import { PhoneInput } from '../components/PhoneInput';
 import { PasswordInput } from '../components/PasswordInput';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { state, set, setCountry, submit } = useLogin();
   const canSubmit = state.telephoneLocal.trim().length > 0 && state.password.length > 0;
 
@@ -73,7 +75,7 @@ export default function LoginScreen() {
             disabled={!canSubmit || state.loading}
             accessibilityLabel="Se connecter">
             {state.loading
-              ? <ActivityIndicator color="#fff" />
+              ? <ActivityIndicator color={colors.primaryFg} />
               : <Text style={styles.btnText}>Se connecter</Text>
             }
           </TouchableOpacity>
@@ -86,49 +88,49 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  flex:   { flex: 1, backgroundColor: Colors.background },
-  scroll: { flex: 1 },
-  content:{ paddingHorizontal: 24, gap: 32 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    flex:    { flex: 1, backgroundColor: colors.background },
+    scroll:  { flex: 1 },
+    content: { paddingHorizontal: 24, gap: 32 },
 
-  header:   { alignItems: 'center', gap: 10 },
-  title:    { fontSize: 26, fontWeight: '700', color: Colors.text },
-  subtitle: { fontSize: 15, color: slate[400] },
+    header:   { alignItems: 'center', gap: 10 },
+    title:    { fontSize: 26, fontWeight: '700', color: colors.text },
+    subtitle: { fontSize: 15, color: colors.textMuted },
 
-  form: { gap: 16 },
+    form: { gap: 16 },
 
-  errorBox: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1, borderColor: '#fecaca',
-    borderRadius: 10, padding: 12,
-  },
-  errorBoxBlocked: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#fca5a5',
-  },
-  errorBoxWarning: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fcd34d',
-  },
-  errorText: { fontSize: 14, color: '#dc2626', textAlign: 'center' },
-  errorTextWarning: { color: '#92400e' },
+    errorBox: {
+      backgroundColor: colors.dangerBg,
+      borderWidth: 1, borderColor: colors.danger,
+      borderRadius: 10, padding: 12,
+    },
+    errorBoxBlocked: {
+      backgroundColor: colors.dangerBg,
+      borderColor: colors.danger,
+    },
+    errorBoxWarning: {
+      backgroundColor: colors.warningBg,
+      borderColor: colors.warning,
+    },
+    errorText:        { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    errorTextWarning: { color: colors.warning },
 
-  btn: {
-    height: 52, borderRadius: 14,
-    backgroundColor: Colors.primary,
-    alignItems: 'center', justifyContent: 'center',
-    marginTop: 4,
-  },
-  btnDisabled: { opacity: 0.6 },
-  btnText:     { color: '#fff', fontSize: 16, fontWeight: '700' },
+    btn: {
+      height: 52, borderRadius: 14,
+      backgroundColor: colors.primary,
+      alignItems: 'center', justifyContent: 'center',
+      marginTop: 4,
+    },
+    btnDisabled: { opacity: 0.6 },
+    btnText:     { color: colors.primaryFg, fontSize: 16, fontWeight: '700' },
 
-  link:     { alignItems: 'center', paddingVertical: 4 },
-  linkText: { color: Colors.primary, fontSize: 14, fontWeight: '600' },
-
-});
+    link:     { alignItems: 'center', paddingVertical: 4 },
+    linkText: { color: colors.primary, fontSize: 14, fontWeight: '600' },
+  });
+}

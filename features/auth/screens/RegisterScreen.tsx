@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator, KeyboardAvoidingView, Linking, Modal, Platform, Pressable,
   ScrollView, StyleSheet, Text, TouchableOpacity, View,
@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { useRegister, TOTAL_STEPS } from '../hooks/useRegister';
 import { PhoneInput }    from '../components/PhoneInput';
 import { AuthInput }     from '../components/AuthInput';
@@ -31,6 +31,8 @@ const MAIL_APPS = [
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { state, set, setCountry, next, back } = useRegister();
   const [mailChooser, setMailChooser] = useState(false);
 
@@ -146,7 +148,7 @@ export default function RegisterScreen() {
         android_ripple={null}
         accessibilityLabel="Retour"
         style={[styles.backBtn, { top: insets.top + 10 }]}>
-        <Ionicons name="arrow-back" size={20} color="#111111" />
+        <Ionicons name="arrow-back" size={20} color={colors.text} />
       </Pressable>
 
       <View style={[styles.headerRow, { paddingTop: insets.top + 10 }]}>
@@ -269,7 +271,7 @@ export default function RegisterScreen() {
             disabled={!canContinue || state.loading}
             accessibilityLabel={state.step === TOTAL_STEPS ? 'Créer mon compte' : 'Étape suivante'}>
             {state.loading
-              ? <ActivityIndicator color="#fff" />
+              ? <ActivityIndicator color={colors.primaryFg} />
               : <Text style={styles.btnNextText}>
                   {state.step === TOTAL_STEPS ? 'Créer mon compte' : 'Continuer →'}
                 </Text>
@@ -289,168 +291,94 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex:       { flex: 1, backgroundColor: Colors.background },
-  scroll:     { flex: 1 },
-  content:    { paddingHorizontal: 24 },
-  formCenter: { flex: 1, justifyContent: 'center', gap: 24 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    flex:       { flex: 1, backgroundColor: colors.background },
+    scroll:     { flex: 1 },
+    content:    { paddingHorizontal: 24 },
+    formCenter: { flex: 1, justifyContent: 'center', gap: 24 },
 
-  backBtn: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
+    backBtn: {
+      position: 'absolute',
+      left: 20,
+      zIndex: 10,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  headerRow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 10,
-  },
-  title: { fontSize: 20, fontWeight: '700', color: Colors.text },
+    headerRow: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingBottom: 10,
+    },
+    title: { fontSize: 20, fontWeight: '700', color: colors.text },
 
-  globalError: {
-    backgroundColor: '#fef2f2', borderWidth: 1,
-    borderColor: '#fecaca', borderRadius: 10, padding: 12,
-  },
-  globalErrorText: { fontSize: 14, color: '#dc2626', textAlign: 'center' },
+    globalError:     { backgroundColor: colors.dangerBg, borderWidth: 1, borderColor: colors.danger, borderRadius: 10, padding: 12 },
+    globalErrorText: { fontSize: 14, color: colors.danger, textAlign: 'center' },
 
-  stepCard: { gap: 16 },
+    stepCard: { gap: 16 },
 
-  infoBox: {
-    backgroundColor: '#eff6ff', borderWidth: 1,
-    borderColor: '#bfdbfe', borderRadius: 10, padding: 10,
-  },
-  infoText: { fontSize: 13, color: Colors.primary },
+    infoBox:  { backgroundColor: colors.infoBg, borderWidth: 1, borderColor: colors.primaryLight, borderRadius: 10, padding: 10 },
+    infoText: { fontSize: 13, color: colors.primary },
 
-  recapCard: {
-    backgroundColor: Colors.surface, borderRadius: 14,
-    borderWidth: 1, borderColor: slate[200], padding: 14, gap: 8,
-  },
-  recapTitle: { fontSize: 13, fontWeight: '700', color: slate[500], marginBottom: 2 },
-  recapRow:   { flexDirection: 'row', justifyContent: 'space-between' },
-  recapLabel: { fontSize: 13, color: slate[400] },
-  recapValue: { fontSize: 13, fontWeight: '600', color: Colors.text },
+    recapCard: {
+      backgroundColor: colors.surface, borderRadius: 14,
+      borderWidth: 1, borderColor: colors.border, padding: 14, gap: 8,
+    },
+    recapTitle: { fontSize: 13, fontWeight: '700', color: colors.textMuted, marginBottom: 2 },
+    recapRow:   { flexDirection: 'row', justifyContent: 'space-between' },
+    recapLabel: { fontSize: 13, color: colors.textMuted },
+    recapValue: { fontSize: 13, fontWeight: '600', color: colors.text },
 
-  btnNext:     { height: 52, borderRadius: 14, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  btnDisabled: { opacity: 0.4 },
-  btnNextText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    btnNext:     { height: 52, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+    btnDisabled: { opacity: 0.4 },
+    btnNextText: { color: colors.primaryFg, fontSize: 16, fontWeight: '700' },
 
-  footer:     { flexDirection: 'row', justifyContent: 'center', paddingTop: 4 },
-  footerText: { fontSize: 14, color: slate[500] },
-  footerLink: { fontSize: 14, color: Colors.primary, fontWeight: '700' },
+    footer:     { flexDirection: 'row', justifyContent: 'center', paddingTop: 4 },
+    footerText: { fontSize: 14, color: colors.textMuted },
+    footerLink: { fontSize: 14, color: colors.primary, fontWeight: '700' },
 
-  // ── Écran de confirmation (style Bolt, thème bleu marine) ─────────────────
-  done: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 28,
-  },
-  doneLogoWrap: {
-    paddingTop: 20,
-  },
-  doneContent: {
-    gap: 18,
-  },
-  doneTitle: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.5,
-    lineHeight: 40,
-    textTransform: 'uppercase',
-  },
-  doneDesc: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.72)',
-    lineHeight: 22,
-  },
-  doneEmailHighlight: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  doneHint: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.45)',
-    lineHeight: 20,
-  },
-  doneActions: {
-    gap: 4,
-    paddingBottom: 12,
-  },
-  doneBtn: {
-    height: 54,
-    borderRadius: 14,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  doneBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-  doneResend: {
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  doneResendText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.55)',
-    fontWeight: '500',
-  },
+    // ── Écran de confirmation (style Bolt, fond bleu primary — toujours bleu) ─
+    done: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      paddingHorizontal: 28,
+    },
+    doneLogoWrap: { paddingTop: 20 },
+    doneContent:  { gap: 18 },
+    doneTitle: {
+      fontSize: 34, fontWeight: '800', color: '#ffffff',
+      letterSpacing: -0.5, lineHeight: 40, textTransform: 'uppercase',
+    },
+    doneDesc:           { fontSize: 15, color: 'rgba(255,255,255,0.72)', lineHeight: 22 },
+    doneEmailHighlight: { color: '#ffffff', fontWeight: '600' },
+    doneHint:           { fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 20 },
+    doneActions: { gap: 4, paddingBottom: 12 },
+    doneBtn: {
+      height: 54, borderRadius: 14,
+      backgroundColor: '#ffffff',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    doneBtnText:    { fontSize: 16, fontWeight: '700', color: colors.primary },
+    doneResend:     { alignItems: 'center', paddingVertical: 14 },
+    doneResendText: { fontSize: 14, color: 'rgba(255,255,255,0.55)', fontWeight: '500' },
 
-  // ── Mail chooser (style iOS action sheet) ────────────────────────────────
-  mailOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  mailSheet: {
-    paddingHorizontal: 12,
-    gap: 10,
-  },
-  mailOptions: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  mailSep: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: slate[200],
-    marginHorizontal: 16,
-  },
-  mailOption: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  mailOptionText: {
-    fontSize: 17,
-    color: Colors.primary,
-  },
-  mailCancel: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mailCancelText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-});
+    // ── Mail chooser (style iOS action sheet) ────────────────────────────────
+    mailOverlay: {
+      flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end',
+    },
+    mailSheet:   { paddingHorizontal: 12, gap: 10 },
+    mailOptions: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
+    mailSep:     { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: 16 },
+    mailOption:  { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+    mailOptionText: { fontSize: 17, color: colors.primary },
+    mailCancel:     { backgroundColor: colors.surface, borderRadius: 14, height: 56, alignItems: 'center', justifyContent: 'center' },
+    mailCancelText: { fontSize: 17, fontWeight: '700', color: colors.primary },
+  });
+}

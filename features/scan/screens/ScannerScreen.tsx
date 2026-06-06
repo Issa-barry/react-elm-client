@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { scanService } from '../services/scan.service';
 import type { ClientScan, ScanResult, UserScan } from '../types/scan.types';
 
@@ -32,15 +32,20 @@ const ROLE_LABEL: Record<string, string> = {
   livreur:      'Livreur',
 };
 
-const ROLE_COLOR: Record<string, { bg: string; text: string }> = {
-  proprietaire: { bg: '#eff6ff', text: Colors.primary },
-  livreur:      { bg: '#f0fdf4', text: '#16a34a' },
-};
+function getRoleColor(colors: ReturnType<typeof useTheme>['colors']): Record<string, { bg: string; text: string }> {
+  return {
+    proprietaire: { bg: colors.infoBg,    text: colors.primary },
+    livreur:      { bg: colors.successBg, text: colors.success  },
+  };
+}
 
-// ─── Carte utilisateur (proprietaire / livreur) ───────────────────────────────
+// ─── Carte utilisateur ────────────────────────────────────────────────────────
 
 function UserCard({ user, onClose }: Readonly<{ user: UserScan; onClose: () => void }>) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles    = useMemo(() => makeCardStyles(colors), [colors]);
+  const roleColor = getRoleColor(colors);
 
   return (
     <Pressable style={styles.overlay} onPress={onClose}>
@@ -57,8 +62,8 @@ function UserCard({ user, onClose }: Readonly<{ user: UserScan; onClose: () => v
             <Text style={styles.cardNom}>{user.nom_complet}</Text>
             <View style={styles.rolesRow}>
               {user.roles.map(r => (
-                <View key={r} style={[styles.roleBadge, { backgroundColor: ROLE_COLOR[r]?.bg ?? slate[100] }]}>
-                  <Text style={[styles.roleBadgeText, { color: ROLE_COLOR[r]?.text ?? slate[500] }]}>
+                <View key={r} style={[styles.roleBadge, { backgroundColor: roleColor[r]?.bg ?? colors.surfaceAlt }]}>
+                  <Text style={[styles.roleBadgeText, { color: roleColor[r]?.text ?? colors.textMuted }]}>
                     {ROLE_LABEL[r] ?? r}
                   </Text>
                 </View>
@@ -114,6 +119,8 @@ function UserCard({ user, onClose }: Readonly<{ user: UserScan; onClose: () => v
 
 function ClientCard({ client, onClose }: Readonly<{ client: ClientScan; onClose: () => void }>) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeCardStyles(colors), [colors]);
 
   return (
     <Pressable style={styles.overlay} onPress={onClose}>
@@ -171,6 +178,8 @@ function ClientCard({ client, onClose }: Readonly<{ client: ClientScan; onClose:
 
 export default function ScannerScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeScannerStyles(colors), [colors]);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned]   = useState(false);
   const [loading, setLoading]   = useState(false);
@@ -215,7 +224,7 @@ export default function ScannerScreen() {
 
   // ── Permission ───────────────────────────────────────────────────────────
   if (!permission) {
-    return <View style={styles.centered}><ActivityIndicator color={Colors.primary} /></View>;
+    return <View style={styles.centered}><ActivityIndicator color={colors.primary} /></View>;
   }
 
   if (!permission.granted) {
@@ -313,72 +322,80 @@ const CORNER_LEN = 28;
 const CORNER_W   = 4;
 const CORNER_R   = 8;
 
-const styles = StyleSheet.create({
-  root:     { flex: 1, backgroundColor: '#000' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, padding: 24, gap: 16 },
+// Styles de la caméra/scanner (fond toujours noir)
+function makeScannerStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    root:     { flex: 1, backgroundColor: '#000' },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background, padding: 24, gap: 16 },
 
-  darkOverlay: { ...StyleSheet.absoluteFillObject },
-  darkTop:     { height: FRAME_TOP, backgroundColor: 'rgba(0,0,0,0.65)' },
-  darkMiddle:  { height: FRAME_SIZE, flexDirection: 'row' },
-  darkSide:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)' },
-  scanFrame:   { width: FRAME_SIZE, backgroundColor: 'transparent' },
-  darkBottom:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)' },
+    darkOverlay: { ...StyleSheet.absoluteFillObject },
+    darkTop:     { height: FRAME_TOP, backgroundColor: 'rgba(0,0,0,0.65)' },
+    darkMiddle:  { height: FRAME_SIZE, flexDirection: 'row' },
+    darkSide:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)' },
+    scanFrame:   { width: FRAME_SIZE, backgroundColor: 'transparent' },
+    darkBottom:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)' },
 
-  corner:    { position: 'absolute', width: CORNER_LEN, height: CORNER_LEN, borderColor: '#fff', borderRadius: CORNER_R },
-  cornerTL:  { top: FRAME_TOP,                        left: '50%',  marginLeft: -FRAME_SIZE / 2,  borderTopWidth: CORNER_W,    borderLeftWidth: CORNER_W  },
-  cornerTR:  { top: FRAME_TOP,                        right: '50%', marginRight: -FRAME_SIZE / 2, borderTopWidth: CORNER_W,    borderRightWidth: CORNER_W },
-  cornerBL:  { top: FRAME_TOP + FRAME_SIZE - CORNER_LEN, left: '50%',  marginLeft: -FRAME_SIZE / 2,  borderBottomWidth: CORNER_W, borderLeftWidth: CORNER_W  },
-  cornerBR:  { top: FRAME_TOP + FRAME_SIZE - CORNER_LEN, right: '50%', marginRight: -FRAME_SIZE / 2, borderBottomWidth: CORNER_W, borderRightWidth: CORNER_W },
+    corner:    { position: 'absolute', width: CORNER_LEN, height: CORNER_LEN, borderColor: '#fff', borderRadius: CORNER_R },
+    cornerTL:  { top: FRAME_TOP,                              left: '50%',  marginLeft: -FRAME_SIZE / 2,  borderTopWidth: CORNER_W,    borderLeftWidth: CORNER_W  },
+    cornerTR:  { top: FRAME_TOP,                              right: '50%', marginRight: -FRAME_SIZE / 2, borderTopWidth: CORNER_W,    borderRightWidth: CORNER_W },
+    cornerBL:  { top: FRAME_TOP + FRAME_SIZE - CORNER_LEN,   left: '50%',  marginLeft: -FRAME_SIZE / 2,  borderBottomWidth: CORNER_W, borderLeftWidth: CORNER_W  },
+    cornerBR:  { top: FRAME_TOP + FRAME_SIZE - CORNER_LEN,   right: '50%', marginRight: -FRAME_SIZE / 2, borderBottomWidth: CORNER_W, borderRightWidth: CORNER_W },
 
-  instrBox:  { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  instrText: { color: '#fff', fontSize: 14, fontWeight: '500', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
+    instrBox:  { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+    instrText: { color: '#fff', fontSize: 14, fontWeight: '500', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
 
-  feedbackBox:  { position: 'absolute', top: FRAME_TOP + FRAME_SIZE + 24, left: 0, right: 0, alignItems: 'center', gap: 8 },
-  feedbackText: { color: '#fff', fontSize: 14, fontWeight: '600', textAlign: 'center', paddingHorizontal: 32 },
-  errorIcon:    { fontSize: 28 },
+    feedbackBox:  { position: 'absolute', top: FRAME_TOP + FRAME_SIZE + 24, left: 0, right: 0, alignItems: 'center', gap: 8 },
+    feedbackText: { color: '#fff', fontSize: 14, fontWeight: '600', textAlign: 'center', paddingHorizontal: 32 },
+    errorIcon:    { fontSize: 28 },
 
-  zoomRow:     { position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20 },
-  zoomBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' },
-  zoomBtnText: { color: '#fff', fontSize: 22, fontWeight: '300', lineHeight: 26 },
-  zoomLabel:   { color: '#fff', fontSize: 14, fontWeight: '600', minWidth: 28, textAlign: 'center' },
+    zoomRow:     { position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20 },
+    zoomBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' },
+    zoomBtnText: { color: '#fff', fontSize: 22, fontWeight: '300', lineHeight: 26 },
+    zoomLabel:   { color: '#fff', fontSize: 14, fontWeight: '600', minWidth: 28, textAlign: 'center' },
 
-  cancelBtn:     { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
-  cancelBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+    cancelBtn:     { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+    cancelBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 
-  permText:    { fontSize: 15, color: Colors.text, textAlign: 'center', lineHeight: 22 },
-  permBtn:     { backgroundColor: Colors.primary, paddingVertical: 12, paddingHorizontal: 28, borderRadius: 24 },
-  permBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
-  cancelText:  { color: Colors.primary, fontSize: 15 },
+    permText:    { fontSize: 15, color: colors.text, textAlign: 'center', lineHeight: 22 },
+    permBtn:     { backgroundColor: colors.primary, paddingVertical: 12, paddingHorizontal: 28, borderRadius: 24 },
+    permBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+    cancelText:  { color: colors.primary, fontSize: 15 },
+  });
+}
 
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
-  card:    { backgroundColor: Colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 20, gap: 16 },
+// Styles de la bottom sheet résultat (surface themée)
+function makeCardStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+    card:    { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 20, gap: 16 },
 
-  cardHeader:  { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar:      { width: 52, height: 52, borderRadius: 26, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  avatarText:  { color: '#fff', fontSize: 20, fontWeight: '700' },
-  cardTitles:  { flex: 1, gap: 4 },
-  cardNom:     { fontSize: 18, fontWeight: '700', color: Colors.text },
-  cardRef:     { fontSize: 13, color: slate[400] },
+    cardHeader:  { flexDirection: 'row', alignItems: 'center', gap: 14 },
+    avatar:      { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+    avatarText:  { color: '#fff', fontSize: 20, fontWeight: '700' },
+    cardTitles:  { flex: 1, gap: 4 },
+    cardNom:     { fontSize: 18, fontWeight: '700', color: colors.text },
+    cardRef:     { fontSize: 13, color: colors.textMuted },
 
-  rolesRow:      { flexDirection: 'row', gap: 6 },
-  roleBadge:     { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
-  roleBadgeText: { fontSize: 12, fontWeight: '600' },
+    rolesRow:      { flexDirection: 'row', gap: 6 },
+    roleBadge:     { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
+    roleBadgeText: { fontSize: 12, fontWeight: '600' },
 
-  inactiveBadge:     { backgroundColor: '#fee2e2', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
-  inactiveBadgeText: { fontSize: 11, color: '#dc2626', fontWeight: '600' },
+    inactiveBadge:     { backgroundColor: colors.dangerBg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
+    inactiveBadgeText: { fontSize: 11, color: colors.danger, fontWeight: '600' },
 
-  details:    { gap: 10 },
-  detailRow:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  detailIcon: { fontSize: 16, width: 24, textAlign: 'center' },
-  detailText: { fontSize: 14, color: Colors.text, flex: 1 },
+    details:    { gap: 10 },
+    detailRow:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    detailIcon: { fontSize: 16, width: 24, textAlign: 'center' },
+    detailText: { fontSize: 14, color: colors.text, flex: 1 },
 
-  vehiculesSection: { gap: 8 },
-  vehiculesTitre:   { fontSize: 13, fontWeight: '600', color: slate[500] },
-  vehiculesList:    { gap: 8, paddingBottom: 2 },
-  vehiculeChip:     { backgroundColor: slate[100], borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, gap: 2 },
-  vehiculeNom:      { fontSize: 13, fontWeight: '600', color: Colors.text },
-  vehiculeImmat:    { fontSize: 12, color: slate[400] },
+    vehiculesSection: { gap: 8 },
+    vehiculesTitre:   { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+    vehiculesList:    { gap: 8, paddingBottom: 2 },
+    vehiculeChip:     { backgroundColor: colors.surfaceAlt, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, gap: 2 },
+    vehiculeNom:      { fontSize: 13, fontWeight: '600', color: colors.text },
+    vehiculeImmat:    { fontSize: 12, color: colors.textMuted },
 
-  closeBtn:     { backgroundColor: Colors.primary, paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 4 },
-  closeBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-});
+    closeBtn:     { backgroundColor: colors.primary, paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 4 },
+    closeBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  });
+}

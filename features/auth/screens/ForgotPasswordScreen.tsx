@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ActivityIndicator, KeyboardAvoidingView, Platform,
   ScrollView, StyleSheet, Text, TouchableOpacity, View,
@@ -5,7 +6,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { AppLogo } from '@/shared/components/AppLogo';
 import { CloseButton } from '@/shared/components/CloseButton';
 import { useForgotPassword } from '../hooks/useForgotPassword';
@@ -28,6 +29,8 @@ function btnLabel(step: string): string {
 
 export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { state, set, setCountry, submit, autoLogin } = useForgotPassword();
 
   const config = STEP_CONFIG[state.step];
@@ -61,7 +64,7 @@ export default function ForgotPasswordScreen() {
           onPress={autoLogin}
           disabled={state.autoLoginLoading}>
           {state.autoLoginLoading
-            ? <ActivityIndicator color="#fff" />
+            ? <ActivityIndicator color={colors.primaryFg} />
             : <Text style={styles.btnText}>Se connecter</Text>
           }
         </TouchableOpacity>
@@ -150,7 +153,7 @@ export default function ForgotPasswordScreen() {
           onPress={submit}
           disabled={!canSubmit || state.loading}>
           {state.loading
-            ? <ActivityIndicator color="#fff" />
+            ? <ActivityIndicator color={colors.primaryFg} />
             : <Text style={styles.btnText}>{btnLabel(state.step)}</Text>
           }
         </TouchableOpacity>
@@ -167,35 +170,37 @@ export default function ForgotPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex:   { flex: 1, backgroundColor: Colors.background },
-  center: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 20 },
-  scroll: { flex: 1 },
-  content:{ paddingHorizontal: 24, gap: 24 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    flex:    { flex: 1, backgroundColor: colors.background },
+    center:  { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 20 },
+    scroll:  { flex: 1 },
+    content: { paddingHorizontal: 24, gap: 24 },
 
-  header: { alignItems: 'center', gap: 10 },
-  title:  { fontSize: 24, fontWeight: '700', color: Colors.text },
-  hint:   { fontSize: 14, color: slate[400], lineHeight: 22, textAlign: 'center' },
+    header: { alignItems: 'center', gap: 10 },
+    title:  { fontSize: 24, fontWeight: '700', color: colors.text },
+    hint:   { fontSize: 14, color: colors.textMuted, lineHeight: 22, textAlign: 'center' },
 
-  globalError:     { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 10, padding: 12 },
-  globalErrorText: { fontSize: 14, color: '#dc2626', textAlign: 'center' },
+    globalError:     { backgroundColor: colors.dangerBg, borderWidth: 1, borderColor: colors.danger, borderRadius: 10, padding: 12 },
+    globalErrorText: { fontSize: 14, color: colors.danger, textAlign: 'center' },
 
-  otpWrapper:    { alignItems: 'center', gap: 12 },
-  otpEmailLabel: { fontSize: 13, color: slate[400] },
-  otpEmail:      { fontSize: 16, fontWeight: '700', color: Colors.text },
-  formGroup:     { gap: 16 },
+    otpWrapper:    { alignItems: 'center', gap: 12 },
+    otpEmailLabel: { fontSize: 13, color: colors.textMuted },
+    otpEmail:      { fontSize: 16, fontWeight: '700', color: colors.text },
+    formGroup:     { gap: 16 },
 
-  btn:         { height: 52, borderRadius: 14, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  doneBtn:     { height: 60, borderRadius: 16, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', marginTop: 8 },
-  btnDisabled: { opacity: 0.6 },
-  btnText:     { color: '#fff', fontSize: 16, fontWeight: '700' },
+    btn:         { height: 52, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+    doneBtn:     { height: 60, borderRadius: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', marginTop: 8 },
+    btnDisabled: { opacity: 0.6 },
+    btnText:     { color: colors.primaryFg, fontSize: 16, fontWeight: '700' },
 
-  backLink:     { alignItems: 'center', paddingVertical: 4 },
-  backLinkText: { color: slate[500], fontSize: 14 },
+    backLink:     { alignItems: 'center', paddingVertical: 4 },
+    backLinkText: { color: colors.textMuted, fontSize: 14 },
 
-  doneTitle: { fontSize: 22, fontWeight: '700', color: Colors.text, textAlign: 'center' },
-  doneText:  { fontSize: 15, color: slate[400], textAlign: 'center', lineHeight: 22 },
+    doneTitle: { fontSize: 22, fontWeight: '700', color: colors.text, textAlign: 'center' },
+    doneText:  { fontSize: 15, color: colors.textMuted, textAlign: 'center', lineHeight: 22 },
 
-  autoLoginError:     { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 10, padding: 12, alignSelf: 'stretch' },
-  autoLoginErrorText: { fontSize: 13, color: '#dc2626', textAlign: 'center' },
-});
+    autoLoginError:     { backgroundColor: colors.dangerBg, borderWidth: 1, borderColor: colors.danger, borderRadius: 10, padding: 12, alignSelf: 'stretch' },
+    autoLoginErrorText: { fontSize: 13, color: colors.danger, textAlign: 'center' },
+  });
+}

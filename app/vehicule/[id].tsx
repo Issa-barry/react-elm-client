@@ -1,84 +1,119 @@
+import { useMemo, useState } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { HeaderBackButton } from '@/shared/components/HeaderBackButton';
 import VehiculeDetailScreen from '@/features/vehicule/screens/VehiculeDetailScreen';
 import VehiculeFraisScreen from '@/features/vehicule/screens/VehiculeFraisScreen';
+import VehiculeCaracteristiquesScreen from '@/features/vehicule/screens/VehiculeCaracteristiquesScreen';
+import type { RoleVehicule } from '@/features/vehicule/types/vehicule.types';
 
-type Onglet = 'commissions' | 'frais';
+function HeaderLeft() { return <HeaderBackButton />; }
+
+type Onglet = 'commissions' | 'frais' | 'caracteristiques';
+
+const ONGLETS: { key: Onglet; label: string }[] = [
+  { key: 'commissions',     label: 'Commissions' },
+  { key: 'frais',           label: 'Dépenses' },
+  { key: 'caracteristiques', label: 'Caractéristiques' },
+];
 
 export default function VehiculeDetailRoute() {
-  const { id, nom, immatriculation } = useLocalSearchParams<{
+  const {
+    id, nom, immatriculation,
+    vehiculeType, capacite, role, is_active, en_livraison, photo_url,
+  } = useLocalSearchParams<{
     id: string;
     nom: string;
     immatriculation: string;
+    vehiculeType: string;
+    capacite: string;
+    role: string;
+    is_active: string;
+    en_livraison: string;
+    photo_url: string;
   }>();
 
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [onglet, setOnglet] = useState<Onglet>('commissions');
-  const props = { id: id ?? '', nom: nom ?? '', immatriculation: immatriculation ?? '' };
+
+  const baseProps = { id: id ?? '', nom: nom ?? '', immatriculation: immatriculation ?? '' };
+  const caraProps = {
+    nom:             nom ?? '',
+    immatriculation: immatriculation ?? '',
+    type:            vehiculeType ?? '',
+    capacite:        Number(capacite ?? '0'),
+    role:            (role ?? 'livreur') as RoleVehicule,
+    is_active:       is_active === '1',
+    en_livraison:    en_livraison === '1',
+    photo_url:       photo_url || null,
+  };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: nom ?? 'Véhicule',
-          headerLeft: HeaderBackButton,
+          title:            nom ?? 'Véhicule',
+          headerLeft:       HeaderLeft,
           headerBackVisible: false,
+          headerStyle:      { backgroundColor: colors.surface },
+          headerTitleStyle: { color: colors.text },
+          headerTintColor:  colors.primary,
         }}
       />
 
       <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tab, onglet === 'commissions' && styles.tabActive]}
-          onPress={() => setOnglet('commissions')}
-          activeOpacity={0.7}>
-          <Text style={[styles.tabLabel, onglet === 'commissions' && styles.tabLabelActive]}>
-            Commissions
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, onglet === 'frais' && styles.tabActive]}
-          onPress={() => setOnglet('frais')}
-          activeOpacity={0.7}>
-          <Text style={[styles.tabLabel, onglet === 'frais' && styles.tabLabelActive]}>
-            Dépenses
-          </Text>
-        </TouchableOpacity>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBarInner}>
+          {ONGLETS.map((o) => (
+            <TouchableOpacity
+              key={o.key}
+              style={[styles.tab, onglet === o.key && styles.tabActive]}
+              onPress={() => setOnglet(o.key)}
+              activeOpacity={0.7}>
+              <Text style={[styles.tabLabel, onglet === o.key && styles.tabLabelActive]}>
+                {o.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {onglet === 'commissions'
-        ? <VehiculeDetailScreen {...props} />
-        : <VehiculeFraisScreen {...props} />
-      }
+      {onglet === 'commissions'      && <VehiculeDetailScreen {...baseProps} />}
+      {onglet === 'frais'            && <VehiculeFraisScreen {...baseProps} />}
+      {onglet === 'caracteristiques' && <VehiculeCaracteristiquesScreen {...caraProps} />}
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: slate[200],
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
-  },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: slate[400],
-  },
-  tabLabelActive: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    tabBar: {
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    tabBarInner: {
+      flexDirection: 'row',
+    },
+    tab: {
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+    },
+    tabActive: {
+      borderBottomWidth: 2,
+      borderBottomColor: colors.primary,
+    },
+    tabLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textMuted,
+    },
+    tabLabelActive: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+  });
+}

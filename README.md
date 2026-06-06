@@ -53,3 +53,7 @@ Join our community of developers creating universal apps.
 
 npm run test:coverage
 Ouvre ensuite mobile/coverage/index.html dans le navigateur pour la vue ligne par ligne.
+
+
+#pour les notifs
+npx eas init

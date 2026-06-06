@@ -60,7 +60,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     circleActive:  { backgroundColor: colors.surface, borderColor: colors.primary },
     circlePending: { backgroundColor: colors.surface, borderColor: colors.border },
 
-    check:       { color: '#fff', fontSize: 14, fontWeight: '700' },
+    check:       { color: colors.primaryFg, fontSize: 14, fontWeight: '700' },
     num:         { fontSize: 13, fontWeight: '700' },
     numActive:   { color: colors.primary },
     numPending:  { color: colors.textMuted },

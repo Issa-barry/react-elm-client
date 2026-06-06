@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -12,7 +13,7 @@ import { useCallback, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { useLivraisonsEnCours } from '../hooks/useLivraisonsEnCours';
 import type { LivraisonEnCours } from '../types/livraison.types';
 
@@ -25,6 +26,9 @@ function formatDate(iso: string | null): string {
 // ─── Carte livraison ─────────────────────────────────────────────────────────
 
 function LivraisonCard({ item }: Readonly<{ item: LivraisonEnCours }>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <View style={styles.card}>
       {/* En-tête */}
@@ -83,6 +87,8 @@ function LivraisonCard({ item }: Readonly<{ item: LivraisonEnCours }>) {
 
 export default function LivraisonsScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { livraisons, loading, refreshing, error, load, refetch } = useLivraisonsEnCours();
 
   useEffect(() => { load(); }, [load]);
@@ -103,14 +109,14 @@ export default function LivraisonsScreen() {
       ]}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refetch} colors={[Colors.primary]} tintColor={Colors.primary} />
+        <RefreshControl refreshing={refreshing} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />
       }>
 
       <Text style={styles.titre}>Livraisons en cours</Text>
 
       {loading && (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
 
@@ -147,57 +153,56 @@ export default function LivraisonsScreen() {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  scroll:   { flex: 1, backgroundColor: Colors.background },
-  content:  { paddingHorizontal: 16 },
-  titre:    { fontSize: 24, fontWeight: '700', color: Colors.text },
-  sousTitre:{ fontSize: 14, color: slate[400], marginTop: 2, marginBottom: 16 },
-  liste:    { gap: 12 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll:    { flex: 1, backgroundColor: colors.background },
+    content:   { paddingHorizontal: 16 },
+    titre:     { fontSize: 24, fontWeight: '700', color: colors.text },
+    sousTitre: { fontSize: 14, color: colors.textMuted, marginTop: 2, marginBottom: 16 },
+    liste:     { gap: 12 },
 
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: slate[200],
-    padding: 16,
-    gap: 14,
-  },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  refRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  reference:  { fontSize: 15, fontWeight: '700', color: Colors.text },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  badgeDot:   { width: 7, height: 7, borderRadius: 4, backgroundColor: Colors.primary },
-  badgeLabel: { fontSize: 12, fontWeight: '600', color: Colors.primary },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      gap: 14,
+    },
+    cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    refRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+    reference:  { fontSize: 15, fontWeight: '700', color: colors.text },
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      backgroundColor: colors.infoBg,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 20,
+    },
+    badgeDot:   { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.primary },
+    badgeLabel: { fontSize: 12, fontWeight: '600', color: colors.primary },
 
-  // Route source → destination
-  route:         { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  routePoint:    { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
-  routeDot:      { width: 10, height: 10, borderRadius: 5 },
-  routeDotSource:{ backgroundColor: slate[400] },
-  routeDotDest:  { backgroundColor: Colors.primary },
-  routeLine:     { flex: 1, height: 1, backgroundColor: slate[200] },
-  routeNom:      { fontSize: 14, fontWeight: '600', color: Colors.text },
+    route:          { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    routePoint:     { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
+    routeDot:       { width: 10, height: 10, borderRadius: 5 },
+    routeDotSource: { backgroundColor: colors.textMuted },
+    routeDotDest:   { backgroundColor: colors.primary },
+    routeLine:      { flex: 1, height: 1, backgroundColor: colors.border },
+    routeNom:       { fontSize: 14, fontWeight: '600', color: colors.text },
 
-  // Infos
-  infoRow:   { flexDirection: 'row', gap: 16 },
-  infoItem:  { flex: 1, gap: 2 },
-  infoLabel: { fontSize: 11, color: slate[400] },
-  infoValeur:{ fontSize: 13, fontWeight: '600', color: Colors.text },
+    infoRow:   { flexDirection: 'row', gap: 16 },
+    infoItem:  { flex: 1, gap: 2 },
+    infoLabel: { fontSize: 11, color: colors.textMuted },
+    infoValeur:{ fontSize: 13, fontWeight: '600', color: colors.text },
 
-  // États
-  centerBox:  { marginTop: 60, alignItems: 'center', gap: 12 },
-  errorText:  { fontSize: 14, color: '#dc2626', textAlign: 'center' },
-  retryBtn:   { backgroundColor: Colors.primary, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20 },
-  retryBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  emptyIcon:  { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.text },
-  emptyText:  { fontSize: 14, color: slate[400] },
-});
+    centerBox:    { marginTop: 60, alignItems: 'center', gap: 12 },
+    errorText:    { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    retryBtn:     { backgroundColor: colors.primary, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20 },
+    retryBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+    emptyIcon:    { fontSize: 48 },
+    emptyTitle:   { fontSize: 18, fontWeight: '700', color: colors.text },
+    emptyText:    { fontSize: 14, color: colors.textMuted },
+  });
+}

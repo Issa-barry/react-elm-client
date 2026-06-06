@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
-import { Colors, blue, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { formatMontant, formatDate } from '@/shared/utils/format';
 import { useFraisVehicule } from '../hooks/useFraisVehicule';
 import type { FraisApi } from '../types/frais.types';
@@ -37,18 +37,20 @@ function iconeType(code: string): string {
   return ICONE_PAR_CODE[code] ?? '📋';
 }
 
-// ─── Filtres disponibles (construits depuis les données réelles) ───────────────
-
 const FILTRE_TOUS = 'tous';
 
 // ─── Composants ──────────────────────────────────────────────────────────────
 
+function getStatut(statut: string, colors: ReturnType<typeof useTheme>['colors']) {
+  if (statut === 'approuve') return { label: 'Approuvé', color: colors.success, bg: colors.successBg };
+  if (statut === 'rejete')   return { label: 'Rejeté',   color: colors.danger,  bg: colors.dangerBg  };
+  return                             { label: 'En attente', color: colors.warning, bg: colors.warningBg };
+}
+
 function FraisRow({ item }: Readonly<{ item: FraisApi }>) {
-  const statut = item.statut === 'approuve'
-    ? { label: 'Approuvé', color: '#16a34a', bg: '#dcfce7' }
-    : item.statut === 'rejete'
-      ? { label: 'Rejeté', color: '#dc2626', bg: '#fee2e2' }
-      : { label: 'En attente', color: '#ca8a04', bg: '#fef9c3' };
+  const { colors } = useTheme();
+  const styles  = useMemo(() => makeStyles(colors), [colors]);
+  const statut  = getStatut(item.statut, colors);
 
   return (
     <View style={styles.row}>
@@ -74,6 +76,8 @@ function FraisRow({ item }: Readonly<{ item: FraisApi }>) {
 
 export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readonly<Props>) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [filtreCode, setFiltreCode] = useState<string>(FILTRE_TOUS);
   const [moisActif, setMoisActif]   = useState<string>(FILTRE_TOUS);
   const [refreshing, setRefreshing] = useState(false);
@@ -89,7 +93,6 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
     setRefreshing(false);
   }
 
-  // Catégories uniques présentes dans les données
   const categories = useMemo(() => {
     const seen = new Set<string>();
     return frais.filter(f => {
@@ -99,13 +102,11 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
     }).map(f => ({ code: f.type_code, label: f.type_label }));
   }, [frais]);
 
-  // Mois disponibles
   const moisDisponibles = useMemo(
     () => [...new Set(frais.map(f => f.mois))],
     [frais],
   );
 
-  // Données filtrées groupées par mois
   const groupes = useMemo(() => {
     const filtered = frais
       .filter(f => moisActif === FILTRE_TOUS || f.mois === moisActif)
@@ -133,7 +134,7 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
       contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[Colors.primary]} tintColor={Colors.primary} />
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[colors.primary]} tintColor={colors.primary} />
       }>
 
       {/* Résumé */}
@@ -189,7 +190,7 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
 
       {/* Contenu */}
       {loading && (
-        <View style={styles.center}><ActivityIndicator size="large" color={Colors.primary} /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
       )}
 
       {!loading && error && (
@@ -226,51 +227,53 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: Colors.background },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll: { flex: 1, backgroundColor: colors.background },
 
-  resumeCard: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20, paddingVertical: 20,
-    marginHorizontal: 16, marginTop: 16,
-    borderRadius: 16, gap: 12,
-  },
-  resumeNom:          { color: '#fff', fontSize: 18, fontWeight: '700' },
-  resumeImmat:        { color: 'rgba(255,255,255,0.75)', fontSize: 14 },
-  resumeStats:        { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
-  resumeStatLabel:    { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
-  resumeStatValue:    { color: '#fff', fontSize: 16, fontWeight: '700' },
-  resumeStatDivider:  { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.25)' },
+    resumeCard: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 20, paddingVertical: 20,
+      marginHorizontal: 16, marginTop: 16,
+      borderRadius: 16, gap: 12,
+    },
+    resumeNom:          { color: '#fff', fontSize: 18, fontWeight: '700' },
+    resumeImmat:        { color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+    resumeStats:        { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
+    resumeStatLabel:    { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
+    resumeStatValue:    { color: '#fff', fontSize: 16, fontWeight: '700' },
+    resumeStatDivider:  { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.25)' },
 
-  filtreList:         { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  chip:               { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: Colors.surface, borderWidth: 1, borderColor: slate[200] },
-  chipActive:         { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipLabel:          { fontSize: 13, fontWeight: '500', color: slate[500] },
-  chipLabelActive:    { color: '#fff', fontWeight: '600' },
-  chipMois:           { backgroundColor: Colors.surface, borderColor: slate[200] },
-  chipMoisActive:     { backgroundColor: blue[50], borderColor: Colors.primary },
-  chipLabelMoisActive:{ color: Colors.primary, fontWeight: '600' },
+    filtreList:          { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+    chip:                { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+    chipActive:          { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipLabel:           { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+    chipLabelActive:     { color: '#fff', fontWeight: '600' },
+    chipMois:            { backgroundColor: colors.surface, borderColor: colors.border },
+    chipMoisActive:      { backgroundColor: colors.cardActive, borderColor: colors.primary },
+    chipLabelMoisActive: { color: colors.primary, fontWeight: '600' },
 
-  groupe:    { marginTop: 8, paddingHorizontal: 16, gap: 8 },
-  moisHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  moisTitre: { fontSize: 15, fontWeight: '700', color: Colors.text },
-  moisTotal: { fontSize: 14, fontWeight: '600', color: Colors.primary },
+    groupe:    { marginTop: 8, paddingHorizontal: 16, gap: 8 },
+    moisHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    moisTitre: { fontSize: 15, fontWeight: '700', color: colors.text },
+    moisTotal: { fontSize: 14, fontWeight: '600', color: colors.primary },
 
-  card:      { backgroundColor: Colors.surface, borderRadius: 14, borderWidth: 1, borderColor: slate[200], overflow: 'hidden' },
-  row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, gap: 12 },
-  rowIconBox:{ width: 38, height: 38, borderRadius: 10, backgroundColor: slate[100], alignItems: 'center', justifyContent: 'center' },
-  rowIconText:{ fontSize: 18 },
-  rowLeft:   { flex: 1, gap: 3 },
-  rowRef:    { fontSize: 14, fontWeight: '600', color: Colors.text },
-  rowMeta:   { fontSize: 12, color: slate[400] },
-  rowComment:{ fontSize: 12, color: slate[400], fontStyle: 'italic' },
-  rowRight:  { alignItems: 'flex-end', gap: 4 },
-  rowMontant:{ fontSize: 14, fontWeight: '700', color: Colors.text },
-  badge:     { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
-  badgeText: { fontSize: 11, fontWeight: '600' },
-  separator: { height: 1, backgroundColor: slate[100], marginHorizontal: 14 },
+    card:      { backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+    row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, gap: 12 },
+    rowIconBox:{ width: 38, height: 38, borderRadius: 10, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
+    rowIconText:{ fontSize: 18 },
+    rowLeft:   { flex: 1, gap: 3 },
+    rowRef:    { fontSize: 14, fontWeight: '600', color: colors.text },
+    rowMeta:   { fontSize: 12, color: colors.textMuted },
+    rowComment:{ fontSize: 12, color: colors.textMuted, fontStyle: 'italic' },
+    rowRight:  { alignItems: 'flex-end', gap: 4 },
+    rowMontant:{ fontSize: 14, fontWeight: '700', color: colors.text },
+    badge:     { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
+    badgeText: { fontSize: 11, fontWeight: '600' },
+    separator: { height: 1, backgroundColor: colors.borderLight, marginHorizontal: 14 },
 
-  center:    { marginTop: 48, alignItems: 'center', paddingHorizontal: 24 },
-  errorText: { fontSize: 14, color: '#dc2626', textAlign: 'center' },
-  emptyText: { fontSize: 15, color: slate[400], textAlign: 'center' },
-});
+    center:    { marginTop: 48, alignItems: 'center', paddingHorizontal: 24 },
+    errorText: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    emptyText: { fontSize: 15, color: colors.textMuted, textAlign: 'center' },
+  });
+}
