@@ -2,8 +2,8 @@ import {
   COUNTRIES,
   type LoginInput,
   type RegisterStep1Data,
+  type RegisterStep2Data,
   type RegisterStep3Data,
-  type RegisterStep4Data,
 } from '../types/auth.types';
 
 export interface ValidationResult {
@@ -11,26 +11,33 @@ export interface ValidationResult {
   errors: Record<string, string>;
 }
 
-// ─── Règles mot de passe (Password::default() du monolithe) ───────────────
+// ─── Règles mot de passe (miroir de Password::default() du monolithe) ────────
 const SPECIAL = /[!@#$%^&*()\-_=+[\]{};':",.<>/?\\|`~]/;
 
 export function validatePassword(value: string): string | null {
-  if (!value)              return 'Le mot de passe est requis.';
-  if (value.length < 8)   return 'Minimum 8 caractères.';
+  if (!value)                return 'Le mot de passe est requis.';
+  if (value.length < 8)     return 'Minimum 8 caractères.';
   if (!/[A-Z]/.test(value)) return 'Au moins une lettre majuscule.';
   if (!/[a-z]/.test(value)) return 'Au moins une lettre minuscule.';
-  if (!/\d/.test(value)) return 'Au moins un chiffre.';
+  if (!/\d/.test(value))    return 'Au moins un chiffre.';
   if (!SPECIAL.test(value)) return 'Au moins un caractère spécial.';
   return null;
 }
 
-// ─── Téléphone ─────────────────────────────────────────────────────────────
+// ─── Email ────────────────────────────────────────────────────────────────────
+export function validateEmail(value: string): string | null {
+  if (!value || !value.trim()) return "L'adresse email est obligatoire.";
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!re.test(value.trim())) return "L'adresse email n'est pas valide.";
+  return null;
+}
+
+// ─── Téléphone ────────────────────────────────────────────────────────────────
 export function validatePhone(telephoneLocal: string, codePays: string): string | null {
   const country = COUNTRIES.find(c => c.code === codePays);
   if (!telephoneLocal)               return 'Le numéro de téléphone est requis.';
   if (!/^\d+$/.test(telephoneLocal)) return 'Chiffres uniquement.';
   if (country) {
-    // Strip le 0 initial (comme le web) avant vérification de longueur
     const normalized = telephoneLocal.replace(/^0/, '');
     if (normalized.length !== country.digits) {
       return `${country.digits} chiffres requis pour ${country.name} (sans le 0 initial).`;
@@ -39,14 +46,7 @@ export function validatePhone(telephoneLocal: string, codePays: string): string 
   return null;
 }
 
-// ─── OTP ───────────────────────────────────────────────────────────────────
-export function validateOtp(otp: string): string | null {
-  if (!otp || otp.length < 5)        return 'Code à 5 chiffres requis.';
-  if (!/^\d{5}$/.test(otp))          return 'Le code doit contenir exactement 5 chiffres.';
-  return null;
-}
-
-// ─── Étape 1 : téléphone ───────────────────────────────────────────────────
+// ─── Étape 1 : téléphone ─────────────────────────────────────────────────────
 export function validateStep1(data: RegisterStep1Data): ValidationResult {
   const errors: Record<string, string> = {};
   if (!data.codePays) errors.codePays = 'Sélectionnez un pays.';
@@ -55,16 +55,8 @@ export function validateStep1(data: RegisterStep1Data): ValidationResult {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-// ─── Étape 2 : OTP ─────────────────────────────────────────────────────────
-export function validateStep2(otp: string): ValidationResult {
-  const errors: Record<string, string> = {};
-  const err = validateOtp(otp);
-  if (err) errors.otp = err;
-  return { valid: Object.keys(errors).length === 0, errors };
-}
-
-// ─── Étape 3 : identité ────────────────────────────────────────────────────
-export function validateStep3(data: RegisterStep3Data): ValidationResult {
+// ─── Étape 2 : identité ──────────────────────────────────────────────────────
+export function validateStep2(data: RegisterStep2Data): ValidationResult {
   const errors: Record<string, string> = {};
   if (!data.prenom || data.prenom.trim().length < 2)
     errors.prenom = 'Prénom requis (min. 2 caractères).';
@@ -73,9 +65,11 @@ export function validateStep3(data: RegisterStep3Data): ValidationResult {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-// ─── Étape 4 : mot de passe ────────────────────────────────────────────────
-export function validateStep4(data: RegisterStep4Data): ValidationResult {
+// ─── Étape 3 : email + mot de passe ─────────────────────────────────────────
+export function validateStep3(data: RegisterStep3Data): ValidationResult {
   const errors: Record<string, string> = {};
+  const emailErr = validateEmail(data.email);
+  if (emailErr) errors.email = emailErr;
   const pwdErr = validatePassword(data.password);
   if (pwdErr) errors.password = pwdErr;
   if (data.password !== data.passwordConfirmation)
@@ -83,7 +77,7 @@ export function validateStep4(data: RegisterStep4Data): ValidationResult {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-// ─── Login ─────────────────────────────────────────────────────────────────
+// ─── Login ────────────────────────────────────────────────────────────────────
 export function validateLogin(data: LoginInput): ValidationResult {
   const errors: Record<string, string> = {};
   const phoneErr = validatePhone(data.telephoneLocal, data.codePays);

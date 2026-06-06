@@ -21,15 +21,12 @@ export const COUNTRIES: Country[] = [
 
 export const DEFAULT_COUNTRY = COUNTRIES[0]; // Guinée
 
-/** Compose un numéro E.164 : retire le 0 initial du numéro local si présent.
- *  Ex: +33 + 0754158797 → +33754158797  (France)
- *      +224 + 621234567 → +224621234567 (Guinée, inchangé)
- */
+/** Compose un numéro E.164 : retire le 0 initial du numéro local si présent. */
 export function buildE164(prefix: string, local: string): string {
   return `${prefix}${local.replace(/^0/, '')}`;
 }
 
-// ─── Session / utilisateur ─────────────────────────────────────────────────
+// ─── Session / utilisateur ──────────────────────────────────────────────────
 export interface AuthUser {
   id: string;
   prenom: string;
@@ -44,15 +41,17 @@ export interface AuthSession {
   token: string;
 }
 
-// ─── Login ─────────────────────────────────────────────────────────────────
+// ─── Login ──────────────────────────────────────────────────────────────────
 export interface LoginInput {
   codePays: string;
   telephoneLocal: string;
-  telephone: string; // codePays.prefix + telephoneLocal
+  telephone: string;
   password: string;
 }
 
-// ─── Inscription (4 étapes) ────────────────────────────────────────────────
+// ─── Inscription (3 étapes) ─────────────────────────────────────────────────
+
+/** Étape 1 : numéro de téléphone */
 export interface RegisterStep1Data {
   codePays: string;
   prefix: string;
@@ -60,17 +59,16 @@ export interface RegisterStep1Data {
   telephone: string;
 }
 
+/** Étape 2 : identité (prenom / nom) */
 export interface RegisterStep2Data {
-  otp: string;
-}
-
-export interface RegisterStep3Data {
   prenom: string;
   nom: string;
-  prefilled: boolean; // true = champs verrouillés (données pré-remplies)
+  prefilled: boolean;
 }
 
-export interface RegisterStep4Data {
+/** Étape 3 : email + mot de passe */
+export interface RegisterStep3Data {
+  email: string;
   password: string;
   passwordConfirmation: string;
 }
@@ -78,10 +76,34 @@ export interface RegisterStep4Data {
 export type FullRegisterData =
   RegisterStep1Data &
   RegisterStep2Data &
-  RegisterStep3Data &
-  RegisterStep4Data;
+  RegisterStep3Data;
 
-// ─── Réinitialisation mot de passe ─────────────────────────────────────────
+// ─── Réponses API ────────────────────────────────────────────────────────────
+
+export interface LookupResponse {
+  status: 'user_exists' | 'prefill_available' | 'not_found';
+  prefill?: { prenom: string; nom: string } | null;
+}
+
+/** Réponse après inscription réussie (compte en attente, pas de token) */
+export interface RegisterPendingResponse {
+  message: string;
+  user: {
+    id: string;
+    prenom: string;
+    nom: string;
+    email: string;
+    status: 'pending';
+    is_active: false;
+  };
+}
+
+export interface LoginResponse {
+  token: string;
+  user: AuthUser;
+}
+
+// ─── Réinitialisation mot de passe ──────────────────────────────────────────
 export type ForgotStep = 'phone' | 'otp' | 'new_password' | 'done';
 
 export interface ForgotPasswordData {
@@ -93,22 +115,7 @@ export interface ForgotPasswordData {
   passwordConfirmation: string;
 }
 
-// ─── Résultat API générique ────────────────────────────────────────────────
+// ─── Résultat API générique ──────────────────────────────────────────────────
 export type ApiResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
-
-// ─── Réponses API attendues ────────────────────────────────────────────────
-export interface LookupResponse {
-  status: 'user_exists' | 'prefill_available' | 'not_found';
-  prefill?: { prenom: string; nom: string } | null;
-}
-
-export interface OtpVerifyResponse {
-  verified: boolean;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: AuthUser;
-}

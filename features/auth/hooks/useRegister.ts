@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { router } from 'expo-router';
 
 import {
   DEFAULT_COUNTRY,
@@ -7,57 +6,59 @@ import {
   type RegisterStep1Data,
   type RegisterStep2Data,
   type RegisterStep3Data,
-  type RegisterStep4Data,
   type FullRegisterData,
 } from '../types/auth.types';
-import {
-  validateStep1,
-  validateStep2,
-  validateStep3,
-  validateStep4,
-} from '../validation/auth.validation';
+import { validateStep1, validateStep2, validateStep3 } from '../validation/auth.validation';
 import { authService } from '../services/auth.service';
-import { secureStorage } from '../services/secure-storage.service';
 
-export const TOTAL_STEPS = 4;
+export const TOTAL_STEPS = 3;
 
 interface RegisterState {
   step: number;
-  // Step 1
+  done: boolean; // true = compte créé, en attente de vérification email
+
+  // Step 1 – téléphone
   codePays: string;
   prefix: string;
   telephoneLocal: string;
   telephone: string;
-  // Step 2
-  otp: string;
-  // Step 3
+
+  // Step 2 – identité
   prenom: string;
   nom: string;
   prefilled: boolean;
-  // Step 4
+
+  // Step 3 – email + mot de passe
+  email: string;
   password: string;
   passwordConfirmation: string;
+
   // UI
   loading: boolean;
   errors: Record<string, string>;
   globalError: string;
+
+  // Après succès
+  registeredEmail: string;
 }
 
 const INITIAL: RegisterState = {
   step:                 1,
+  done:                 false,
   codePays:             DEFAULT_COUNTRY.code,
   prefix:               DEFAULT_COUNTRY.prefix,
   telephoneLocal:       '',
   telephone:            '',
-  otp:                  '',
   prenom:               '',
   nom:                  '',
   prefilled:            false,
+  email:                '',
   password:             '',
   passwordConfirmation: '',
   loading:              false,
   errors:               {},
   globalError:          '',
+  registeredEmail:      '',
 };
 
 export function useRegister() {
@@ -71,24 +72,31 @@ export function useRegister() {
     setState(prev => ({ ...prev, codePays: code, prefix, telephoneLocal: '' }));
   }, []);
 
-  // ── Avancer selon l'étape ──────────────────────────────────────────────
   const next = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, errors: {}, globalError: '' }));
 
+    // ── Étape 1 : téléphone ────────────────────────────────────────────────
     if (state.step === 1) {
       const step1: RegisterStep1Data = {
-        codePays: state.codePays, prefix: state.prefix,
+        codePays:       state.codePays,
+        prefix:         state.prefix,
         telephoneLocal: state.telephoneLocal,
-        telephone: buildE164(state.prefix, state.telephoneLocal),
+        telephone:      buildE164(state.prefix, state.telephoneLocal),
       };
+
       const { valid, errors } = validateStep1(step1);
-      if (!valid) { setState(prev => ({ ...prev, loading: false, errors })); return; }
+      if (!valid) {
+        setState(prev => ({ ...prev, loading: false, errors }));
+        return;
+      }
 
-      // Lookup : le numéro existe-t-il déjà ?
-      const lookup = await authService.lookup(step1.telephone);
-      if (!lookup.ok) { setState(prev => ({ ...prev, loading: false, globalError: lookup.error })); return; }
+      const result = await authService.checkPhone(step1.telephone);
+      if (!result.ok) {
+        setState(prev => ({ ...prev, loading: false, globalError: result.error }));
+        return;
+      }
 
-      if (lookup.data.status === 'user_exists') {
+      if (result.data.status === 'user_exists') {
         setState(prev => ({
           ...prev, loading: false,
           globalError: 'Ce numéro est déjà associé à un compte. Connectez-vous.',
@@ -96,65 +104,85 @@ export function useRegister() {
         return;
       }
 
-      const prefilled = lookup.data.status === 'prefill_available';
+      const prefilled = result.data.status === 'prefill_available';
       setState(prev => ({
-        ...prev, loading: false,
+        ...prev,
+        loading:   false,
+        step:      2,
         telephone: step1.telephone,
-        step: 2,
-        prenom: lookup.data.prefill?.prenom ?? prev.prenom,
-        nom:    lookup.data.prefill?.nom    ?? prev.nom,
+        prenom:    result.data.prefill?.prenom ?? prev.prenom,
+        nom:       result.data.prefill?.nom    ?? prev.nom,
         prefilled,
       }));
       return;
     }
 
+    // ── Étape 2 : identité ────────────────────────────────────────────────
     if (state.step === 2) {
-      const { valid, errors } = validateStep2(state.otp);
-      if (!valid) { setState(prev => ({ ...prev, loading: false, errors })); return; }
+      const step2: RegisterStep2Data = {
+        prenom:    state.prenom,
+        nom:       state.nom,
+        prefilled: state.prefilled,
+      };
 
-      const result = await authService.verifyOtp(state.telephone, state.otp);
-      if (!result.ok) { setState(prev => ({ ...prev, loading: false, globalError: result.error })); return; }
+      const { valid, errors } = validateStep2(step2);
+      if (!valid) {
+        setState(prev => ({ ...prev, loading: false, errors }));
+        return;
+      }
 
       setState(prev => ({ ...prev, loading: false, step: 3 }));
       return;
     }
 
+    // ── Étape 3 : email + mot de passe ───────────────────────────────────
     if (state.step === 3) {
-      const step3: RegisterStep3Data = { prenom: state.prenom, nom: state.nom, prefilled: state.prefilled };
-      const { valid, errors } = validateStep3(step3);
-      if (!valid) { setState(prev => ({ ...prev, loading: false, errors })); return; }
-      setState(prev => ({ ...prev, loading: false, step: 4 }));
-      return;
-    }
+      const step3: RegisterStep3Data = {
+        email:                state.email,
+        password:             state.password,
+        passwordConfirmation: state.passwordConfirmation,
+      };
 
-    if (state.step === 4) {
-      const step4: RegisterStep4Data = { password: state.password, passwordConfirmation: state.passwordConfirmation };
-      const { valid, errors } = validateStep4(step4);
-      if (!valid) { setState(prev => ({ ...prev, loading: false, errors })); return; }
+      const { valid, errors } = validateStep3(step3);
+      if (!valid) {
+        setState(prev => ({ ...prev, loading: false, errors }));
+        return;
+      }
 
       const data: FullRegisterData = {
-        codePays: state.codePays, prefix: state.prefix,
-        telephoneLocal: state.telephoneLocal, telephone: state.telephone,
-        otp: state.otp,
-        prenom: state.prenom, nom: state.nom, prefilled: state.prefilled,
-        password: state.password, passwordConfirmation: state.passwordConfirmation,
+        codePays:             state.codePays,
+        prefix:               state.prefix,
+        telephoneLocal:       state.telephoneLocal,
+        telephone:            state.telephone,
+        prenom:               state.prenom,
+        nom:                  state.nom,
+        prefilled:            state.prefilled,
+        email:                state.email,
+        password:             state.password,
+        passwordConfirmation: state.passwordConfirmation,
       };
 
       const result = await authService.register(data);
-      if (!result.ok) { setState(prev => ({ ...prev, loading: false, globalError: result.error })); return; }
+      if (!result.ok) {
+        setState(prev => ({ ...prev, loading: false, globalError: result.error }));
+        return;
+      }
 
-      await secureStorage.saveToken(result.data.token);
-      await secureStorage.saveUser(result.data.user);
-      setState(prev => ({ ...prev, loading: false }));
-      router.replace('/(tabs)');
+      setState(prev => ({
+        ...prev,
+        loading:         false,
+        done:            true,
+        registeredEmail: result.data.user.email,
+      }));
     }
   }, [state]);
 
   const back = useCallback(() => {
     setState(prev => ({
       ...prev,
-      step: Math.max(1, prev.step - 1),
-      errors: {}, globalError: '',
+      step:        Math.max(1, prev.step - 1),
+      errors:      {},
+      globalError: '',
     }));
   }, []);
 

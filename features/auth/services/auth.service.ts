@@ -4,7 +4,7 @@ import type {
   LoginInput,
   LoginResponse,
   LookupResponse,
-  OtpVerifyResponse,
+  RegisterPendingResponse,
 } from '../types/auth.types';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
@@ -27,64 +27,54 @@ async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
   }
 }
 
-// ─── Mocks développement ─────────────────────────────────────────────────────
+// ─── Mocks développement ──────────────────────────────────────────────────────
 
 const MOCK_TOKEN = 'mock-dev-token-xxxx';
-const MOCK_OTP   = '12345';
 
 function sleep(ms = 800) { return new Promise<void>(r => setTimeout(r, ms)); }
 
-// ─── Service ─────────────────────────────────────────────────────────────────
+// ─── Service ──────────────────────────────────────────────────────────────────
 
 export const authService = {
 
-  async lookup(telephone: string): Promise<ApiResult<LookupResponse>> {
+  /** Étape 1 : vérifie si le numéro existe et retourne les données de pré-remplissage */
+  async checkPhone(telephone: string): Promise<ApiResult<LookupResponse>> {
     if (USE_MOCK) {
       await sleep();
       return { ok: true, data: { status: 'not_found' } };
     }
-    return post('/api/auth/register/lookup', { telephone });
+    return post('/api/auth/register/check-phone', { telephone });
   },
 
-  async verifyOtp(telephone: string, code: string): Promise<ApiResult<OtpVerifyResponse>> {
-    if (USE_MOCK) {
-      await sleep();
-      if (code === MOCK_OTP) return { ok: true, data: { verified: true } };
-      return { ok: false, error: 'Code incorrect. Vérifiez et réessayez.' };
-    }
-    return post('/api/auth/register/otp', { telephone, code });
-  },
-
-  async register(data: FullRegisterData): Promise<ApiResult<LoginResponse>> {
+  /** Crée le compte (statut pending) — retourne message + user sans token */
+  async register(data: FullRegisterData): Promise<ApiResult<RegisterPendingResponse>> {
     if (USE_MOCK) {
       await sleep(1000);
       return {
         ok: true,
         data: {
-          token: MOCK_TOKEN,
+          message: 'Compte créé. Vérifiez votre email.',
           user: {
             id: 'mock-001',
             prenom: data.prenom,
             nom: data.nom.toUpperCase(),
-            telephone: data.telephone,
-            roles: ['client'],
+            email: data.email,
+            status: 'pending',
+            is_active: false,
           },
         },
       };
     }
     return post('/api/auth/register', {
-      telephone:         data.telephone,
-      telephone_local:   data.telephoneLocal,
-      telephone_country: data.codePays,
-      prenom:            data.prenom,
-      nom:               data.nom,
-      password:          data.password,
-      device_name:       'EauLaMaman-Mobile',
+      telephone:             data.telephone,
+      prenom:                data.prenom,
+      nom:                   data.nom,
+      email:                 data.email,
+      password:              data.password,
+      password_confirmation: data.passwordConfirmation,
     });
   },
 
-  // Le backend elm-monolithe attend "telephone" + "device_name"
-  // et retourne directement { token, user } (pas d'enveloppe { success, data })
   async login(input: LoginInput): Promise<ApiResult<LoginResponse>> {
     if (USE_MOCK) {
       await sleep();
@@ -120,10 +110,10 @@ export const authService = {
     return post('/api/auth/password/lookup', { telephone });
   },
 
-  async forgotVerifyOtp(telephone: string, code: string): Promise<ApiResult<OtpVerifyResponse>> {
+  async forgotVerifyOtp(telephone: string, code: string): Promise<ApiResult<{ verified: boolean }>> {
     if (USE_MOCK) {
       await sleep();
-      if (code === MOCK_OTP) return { ok: true, data: { verified: true } };
+      if (code === '12345') return { ok: true, data: { verified: true } };
       return { ok: false, error: 'Code incorrect. Vérifiez et réessayez.' };
     }
     return post('/api/auth/password/verify', { telephone, code });
