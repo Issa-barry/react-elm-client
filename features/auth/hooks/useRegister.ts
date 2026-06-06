@@ -5,17 +5,21 @@ import {
   buildE164,
   type RegisterStep1Data,
   type RegisterStep2Data,
-  type RegisterStep3Data,
   type FullRegisterData,
 } from '../types/auth.types';
-import { validateStep1, validateStep2, validateStep3 } from '../validation/auth.validation';
+import {
+  validateStep1,
+  validateStep2,
+  validateStepEmail,
+  validateStepPassword,
+} from '../validation/auth.validation';
 import { authService } from '../services/auth.service';
 
-export const TOTAL_STEPS = 3;
+export const TOTAL_STEPS = 4;
 
 interface RegisterState {
   step: number;
-  done: boolean; // true = compte créé, en attente de vérification email
+  done: boolean;
 
   // Step 1 – téléphone
   codePays: string;
@@ -28,8 +32,10 @@ interface RegisterState {
   nom: string;
   prefilled: boolean;
 
-  // Step 3 – email + mot de passe
+  // Step 3 – email
   email: string;
+
+  // Step 4 – mot de passe
   password: string;
   passwordConfirmation: string;
 
@@ -38,7 +44,6 @@ interface RegisterState {
   errors: Record<string, string>;
   globalError: string;
 
-  // Après succès
   registeredEmail: string;
 }
 
@@ -119,31 +124,30 @@ export function useRegister() {
 
     // ── Étape 2 : identité ────────────────────────────────────────────────
     if (state.step === 2) {
-      const step2: RegisterStep2Data = {
-        prenom:    state.prenom,
-        nom:       state.nom,
-        prefilled: state.prefilled,
-      };
-
+      const step2: RegisterStep2Data = { prenom: state.prenom, nom: state.nom, prefilled: state.prefilled };
       const { valid, errors } = validateStep2(step2);
       if (!valid) {
         setState(prev => ({ ...prev, loading: false, errors }));
         return;
       }
-
       setState(prev => ({ ...prev, loading: false, step: 3 }));
       return;
     }
 
-    // ── Étape 3 : email + mot de passe ───────────────────────────────────
+    // ── Étape 3 : email ───────────────────────────────────────────────────
     if (state.step === 3) {
-      const step3: RegisterStep3Data = {
-        email:                state.email,
-        password:             state.password,
-        passwordConfirmation: state.passwordConfirmation,
-      };
+      const { valid, errors } = validateStepEmail(state.email);
+      if (!valid) {
+        setState(prev => ({ ...prev, loading: false, errors }));
+        return;
+      }
+      setState(prev => ({ ...prev, loading: false, step: 4 }));
+      return;
+    }
 
-      const { valid, errors } = validateStep3(step3);
+    // ── Étape 4 : mot de passe → inscription ─────────────────────────────
+    if (state.step === 4) {
+      const { valid, errors } = validateStepPassword(state.password, state.passwordConfirmation);
       if (!valid) {
         setState(prev => ({ ...prev, loading: false, errors }));
         return;

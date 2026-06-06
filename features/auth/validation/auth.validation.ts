@@ -26,9 +26,11 @@ export function validatePassword(value: string): string | null {
 
 // ─── Email ────────────────────────────────────────────────────────────────────
 export function validateEmail(value: string): string | null {
-  if (!value || !value.trim()) return "L'adresse email est obligatoire.";
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!re.test(value.trim())) return "L'adresse email n'est pas valide.";
+  if (!value?.trim()) return "L'adresse email est obligatoire.";
+  const trimmed = value.trim();
+  if (trimmed.startsWith('.')) return "L'email ne peut pas commencer par un point.";
+  const re = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@]+$/;
+  if (!re.test(trimmed)) return "L'adresse email n'est pas valide.";
   return null;
 }
 
@@ -65,7 +67,7 @@ export function validateStep2(data: RegisterStep2Data): ValidationResult {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-// ─── Étape 3 : email + mot de passe ─────────────────────────────────────────
+// ─── Étape 3 : email ─────────────────────────────────────────────────────────
 export function validateStep3(data: RegisterStep3Data): ValidationResult {
   const errors: Record<string, string> = {};
   const emailErr = validateEmail(data.email);
@@ -73,6 +75,22 @@ export function validateStep3(data: RegisterStep3Data): ValidationResult {
   const pwdErr = validatePassword(data.password);
   if (pwdErr) errors.password = pwdErr;
   if (data.password !== data.passwordConfirmation)
+    errors.passwordConfirmation = 'Les mots de passe ne correspondent pas.';
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+export function validateStepEmail(email: string): ValidationResult {
+  const errors: Record<string, string> = {};
+  const err = validateEmail(email);
+  if (err) errors.email = err;
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+export function validateStepPassword(password: string, passwordConfirmation: string): ValidationResult {
+  const errors: Record<string, string> = {};
+  const err = validatePassword(password);
+  if (err) errors.password = err;
+  if (password !== passwordConfirmation)
     errors.passwordConfirmation = 'Les mots de passe ne correspondent pas.';
   return { valid: Object.keys(errors).length === 0, errors };
 }
