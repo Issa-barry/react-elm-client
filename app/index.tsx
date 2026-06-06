@@ -48,7 +48,7 @@ export default function Index() {
     // 4. Vérification du token après 2 s, puis redirect
     const timer = setTimeout(async () => {
       const token = await secureStorage.getToken();
-      router.replace(token ? '/(tabs)' : '/(auth)/login');
+      router.replace(token ? '/(tabs)' : '/(auth)/welcome');
     }, 2200);
 
     return () => clearTimeout(timer);
