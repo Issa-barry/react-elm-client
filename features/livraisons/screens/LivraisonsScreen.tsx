@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -9,13 +10,32 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useCallback, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
 import { useTheme } from '@/shared/contexts/ThemeContext';
+import { useVehiculesMine } from '@/features/vehicule/hooks/useVehiculesMine';
 import { useLivraisonsEnCours } from '../hooks/useLivraisonsEnCours';
 import type { LivraisonEnCours } from '../types/livraison.types';
+
+const TYPE_ICONE: Record<string, string> = {
+  Camion: '🚚', Vanne: '🚐', Moto: '🏍️', Tricycle: '🛺', 'Pick-up': '🛻', Autre: '🚗',
+};
+
+function VehiculePhoto({ photoUrl, type }: Readonly<{ photoUrl: string | null; type: string }>) {
+  const { colors } = useTheme();
+  const [erreur, setErreur] = useState(false);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
+  if (photoUrl && !erreur) {
+    return <Image source={{ uri: photoUrl }} style={styles.vehiculePhoto} resizeMode="cover" onError={() => setErreur(true)} />;
+  }
+  return (
+    <View style={styles.vehiculeIconBox}>
+      <Text style={styles.vehiculeIconText}>{TYPE_ICONE[type] ?? '🚗'}</Text>
+    </View>
+  );
+}
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—';
@@ -25,7 +45,11 @@ function formatDate(iso: string | null): string {
 
 // ─── Carte livraison ─────────────────────────────────────────────────────────
 
-function LivraisonCard({ item }: Readonly<{ item: LivraisonEnCours }>) {
+function LivraisonCard({ item, photoUrl, vehiculeType }: Readonly<{
+  item: LivraisonEnCours;
+  photoUrl: string | null;
+  vehiculeType: string;
+}>) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -34,6 +58,9 @@ function LivraisonCard({ item }: Readonly<{ item: LivraisonEnCours }>) {
       {/* En-tête */}
       <View style={styles.cardHeader}>
         <View style={styles.refRow}>
+          {item.vehicule && (
+            <VehiculePhoto photoUrl={photoUrl} type={vehiculeType} />
+          )}
           <Text style={styles.reference}>{item.reference}</Text>
           <View style={styles.badge}>
             <View style={styles.badgeDot} />
@@ -90,8 +117,16 @@ export default function LivraisonsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { livraisons, loading, refreshing, error, load, refetch } = useLivraisonsEnCours();
+  const { vehicules, load: loadVehicules } = useVehiculesMine();
 
-  useEffect(() => { load(); }, [load]);
+  // map immatriculation → { photo_url, type }
+  const vehiculeMap = useMemo(() => {
+    const m: Record<string, { photo_url: string | null; type: string }> = {};
+    vehicules.forEach(v => { m[v.immatriculation] = { photo_url: v.photo_url, type: v.type }; });
+    return m;
+  }, [vehicules]);
+
+  useEffect(() => { load(); loadVehicules(); }, [load, loadVehicules]);
 
   useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
 
@@ -143,7 +178,17 @@ export default function LivraisonsScreen() {
             {livraisons.length} livraison{livraisons.length > 1 ? 's' : ''} active{livraisons.length > 1 ? 's' : ''}
           </Text>
           <View style={styles.liste}>
-            {livraisons.map(item => <LivraisonCard key={item.id} item={item} />)}
+            {livraisons.map(item => {
+              const vInfo = item.vehicule ? vehiculeMap[item.vehicule.immatriculation] : null;
+              return (
+                <LivraisonCard
+                  key={item.id}
+                  item={item}
+                  photoUrl={vInfo?.photo_url ?? null}
+                  vehiculeType={vInfo?.type ?? item.vehicule?.type ?? ''}
+                />
+              );
+            })}
           </View>
         </>
       )}
@@ -169,9 +214,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: 16,
       gap: 14,
     },
+    vehiculePhoto:   { width: 36, height: 36, borderRadius: 10 },
+    vehiculeIconBox: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
+    vehiculeIconText:{ fontSize: 18 },
+
     cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     refRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-    reference:  { fontSize: 15, fontWeight: '700', color: colors.text },
+    reference:  { fontSize: 15, fontWeight: '700', color: colors.text, flex: 1 },
     badge: {
       flexDirection: 'row',
       alignItems: 'center',

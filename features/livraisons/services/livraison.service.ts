@@ -31,7 +31,7 @@ const MOCK: LivraisonEnCours[] = [
     statut_label: 'Livraison en cours',
     site_source: 'Conakry',
     site_destination: 'Kindia',
-    vehicule: { nom: 'Baba Ousou', immatriculation: 'VN-001-GN' },
+    vehicule: { nom: 'Baba Ousou', immatriculation: 'VN-001-GN', type: 'Camion', photo_url: null },
     equipe_nom: 'Équipe Alpha',
     date_depart: new Date().toISOString().split('T')[0],
     date_arrivee_prevue: new Date(Date.now() + 86400000).toISOString().split('T')[0],

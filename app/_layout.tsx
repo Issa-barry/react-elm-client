@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
 
 import { AppThemeProvider, useTheme } from '@/shared/contexts/ThemeContext';
+import { registerPushNotifications } from '@/features/notifications/services/notification.service';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,6 +27,8 @@ export default function RootLayout() {
   const responseListener     = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
+    registerPushNotifications().catch(console.warn);
+
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('[Push] Notification reçue:', notification.request.content.title);
     });

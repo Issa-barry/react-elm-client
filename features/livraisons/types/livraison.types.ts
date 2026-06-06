@@ -7,7 +7,7 @@ export interface LivraisonEnCours {
   statut_label: string;
   site_source: string;
   site_destination: string;
-  vehicule: { nom: string; immatriculation: string } | null;
+  vehicule: { nom: string; immatriculation: string; type: string; photo_url: string | null } | null;
   equipe_nom: string;
   date_depart: string | null;
   date_arrivee_prevue: string | null;
