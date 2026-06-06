@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   FlatList, Modal, StyleSheet, Text,
   TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, blue, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { COUNTRIES, type Country } from '../types/auth.types';
 
 function flagEmoji(code: string): string {
@@ -14,7 +14,7 @@ function flagEmoji(code: string): string {
 }
 
 interface Props {
-  label?: string; 
+  label?: string;
   codePays: string;
   prefix: string;
   telephoneLocal: string;
@@ -30,6 +30,8 @@ export function PhoneInput({
   error,
 }: Readonly<Props>) {
   const [modalVisible, setModalVisible] = useState(false);
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const selected = COUNTRIES.find(c => c.code === codePays) ?? COUNTRIES[0];
 
   function selectCountry(c: Country) {
@@ -48,7 +50,7 @@ export function PhoneInput({
           accessibilityLabel="Choisir le pays">
           <Text style={styles.flag}>{flagEmoji(selected.code)}</Text>
           <Text style={styles.prefix}>{selected.prefix}</Text>
-          <Ionicons name="chevron-down" size={14} color={slate[400]} />
+          <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
         </TouchableOpacity>
 
         <View style={styles.divider} />
@@ -59,13 +61,12 @@ export function PhoneInput({
           value={telephoneLocal}
           onChangeText={t => {
             const raw = t.replace(/\D/g, '');
-            // Autoriser localLength+1 si commence par 0 (ex: France 07XXXXXXXX)
             const max = raw.startsWith('0') ? selected.digits + 1 : selected.digits;
             onChangePhone(raw.slice(0, max));
           }}
           keyboardType="phone-pad"
           placeholder={`${selected.digits} chiffres`}
-          placeholderTextColor={slate[400]}
+          placeholderTextColor={colors.textLight}
           maxLength={selected.digits + 1}
           accessibilityLabel="Numéro de téléphone"
         />
@@ -100,50 +101,52 @@ export function PhoneInput({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 6 },
-  label:   { fontSize: 14, fontWeight: '600', color: Colors.text },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: slate[200],
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    overflow: 'hidden',
-  },
-  rowError:    { borderColor: '#ef4444' },
-  countryBtn:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 6 },
-  flag:        { fontSize: 20 },
-  prefix:      { fontSize: 14, fontWeight: '600', color: Colors.text },
-  divider:     { width: 1, height: 28, backgroundColor: slate[200] },
-  input:       { flex: 1, paddingHorizontal: 12, fontSize: 15, color: Colors.text },
-  error:       { fontSize: 12, color: '#ef4444', marginTop: 2 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    wrapper: { gap: 6 },
+    label:   { fontSize: 14, fontWeight: '600', color: colors.text },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 50,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+      overflow: 'hidden',
+    },
+    rowError:    { borderColor: colors.danger },
+    countryBtn:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 6 },
+    flag:        { fontSize: 20 },
+    prefix:      { fontSize: 14, fontWeight: '600', color: colors.text },
+    divider:     { width: 1, height: 28, backgroundColor: colors.border },
+    input:       { flex: 1, paddingHorizontal: 12, fontSize: 15, color: colors.text },
+    error:       { fontSize: 12, color: colors.danger, marginTop: 2 },
 
-  // Modal
-  backdrop:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
-    paddingBottom: 32,
-    maxHeight: '60%',
-  },
-  sheetTitle: {
-    fontSize: 16, fontWeight: '700', color: Colors.text,
-    paddingHorizontal: 20, marginBottom: 12,
-  },
-  countryItem: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: slate[100],
-  },
-  countryItemActive: { backgroundColor: blue[50] },
-  countryLeft:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  itemFlag:     { fontSize: 22 },
-  countryName:  { fontSize: 15, color: Colors.text },
-  countryPrefix:     { fontSize: 14, color: slate[400] },
-  countryPrefixActive: { color: Colors.primary, fontWeight: '600' },
-});
+    // Modal
+    backdrop:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: 20,
+      paddingBottom: 32,
+      maxHeight: '60%',
+    },
+    sheetTitle: {
+      fontSize: 16, fontWeight: '700', color: colors.text,
+      paddingHorizontal: 20, marginBottom: 12,
+    },
+    countryItem: {
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+      paddingHorizontal: 20, paddingVertical: 14,
+      borderBottomWidth: 1, borderBottomColor: colors.borderLight,
+    },
+    countryItemActive: { backgroundColor: colors.cardActive },
+    countryLeft:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    itemFlag:     { fontSize: 22 },
+    countryName:  { fontSize: 15, color: colors.text },
+    countryPrefix:       { fontSize: 14, color: colors.textMuted },
+    countryPrefixActive: { color: colors.primary, fontWeight: '600' },
+  });
+}

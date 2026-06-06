@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { formatMontant } from '@/shared/utils/format';
 import type { GainsParVehicule } from '@/features/gains/types/gains.types';
 
@@ -12,6 +13,9 @@ interface Props {
 }
 
 function VehiculeRow({ item, isLast }: Readonly<{ item: GainsParVehicule; isLast: boolean }>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   function handlePress() {
     router.push({
       pathname: `/vehicule/${item.vehicule_id}`,
@@ -44,9 +48,12 @@ function VehiculeRow({ item, isLast }: Readonly<{ item: GainsParVehicule; isLast
 }
 
 export default function SoldeVehicules({ parVehicule, loading, error }: Readonly<Props>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const renderBody = () => {
     if (loading) {
-      return <View style={styles.centerBox}><ActivityIndicator size="small" color={Colors.primary} /></View>;
+      return <View style={styles.centerBox}><ActivityIndicator size="small" color={colors.primary} /></View>;
     }
     if (error) {
       return <View style={styles.centerBox}><Text style={styles.errorText}>Impossible de charger les données.</Text></View>;
@@ -67,22 +74,24 @@ export default function SoldeVehicules({ parVehicule, loading, error }: Readonly
   );
 }
 
-const styles = StyleSheet.create({
-  container:  { paddingHorizontal: 24, gap: 12 },
-  titre:      { fontSize: 17, fontWeight: '700', color: Colors.text },
-  card:       { backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: slate[200], overflow: 'hidden', minHeight: 60 },
-  row:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  rowBorder:  { borderBottomWidth: 1, borderBottomColor: slate[100] },
-  rowLeft:    { flex: 1, gap: 3 },
-  nom:        { fontSize: 15, fontWeight: '600', color: Colors.text },
-  immat:      { fontSize: 12, color: slate[400] },
-  montantsRow:{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  montantLabel:  { fontSize: 12, color: slate[400] },
-  montantValeur: { fontSize: 13, fontWeight: '600', color: Colors.text },
-  montantSep:    { fontSize: 12, color: slate[300] },
-  montantRestant:{ color: '#f97316' },
-  chevron:    { fontSize: 22, color: slate[300], marginLeft: 8 },
-  centerBox:  { paddingVertical: 20, alignItems: 'center' },
-  emptyText:  { fontSize: 13, color: slate[400] },
-  errorText:  { fontSize: 13, color: '#dc2626' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    container:  { paddingHorizontal: 24, gap: 12 },
+    titre:      { fontSize: 17, fontWeight: '700', color: colors.text },
+    card:       { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', minHeight: 60 },
+    row:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+    rowBorder:  { borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+    rowLeft:    { flex: 1, gap: 3 },
+    nom:        { fontSize: 15, fontWeight: '600', color: colors.text },
+    immat:      { fontSize: 12, color: colors.textMuted },
+    montantsRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+    montantLabel:  { fontSize: 12, color: colors.textMuted },
+    montantValeur: { fontSize: 13, fontWeight: '600', color: colors.text },
+    montantSep:    { fontSize: 12, color: colors.textLight },
+    montantRestant:{ color: colors.warning },
+    chevron:    { fontSize: 22, color: colors.textLight, marginLeft: 8 },
+    centerBox:  { paddingVertical: 20, alignItems: 'center' },
+    emptyText:  { fontSize: 13, color: colors.textMuted },
+    errorText:  { fontSize: 13, color: colors.danger },
+  });
+}

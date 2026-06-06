@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { Colors, blue, slate } from '@/shared/constants/theme';
+import { blue } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { formatMontant } from '@/shared/utils/format';
 import type { GainsMine } from '@/features/gains/types/gains.types';
 
@@ -56,19 +57,22 @@ function CardSeparator() {
 }
 
 function CardPrimary({ card }: Readonly<{ card: CardData }>) {
+  const { colors } = useTheme();
   return (
-    <View style={[styles.card, styles.cardPrimary]}>
+    <View style={[staticStyles.card, { backgroundColor: colors.primary }]}>
       <WavePrimary />
-      <Text style={styles.titrePrimary}>{card.titre}</Text>
-      <Text style={styles.montantPrimary}>{formatMontant(card.montant)}</Text>
-      <Text style={styles.sousTitrePrimary}>{card.sousTitre}</Text>
+      <Text style={staticStyles.titrePrimary}>{card.titre}</Text>
+      <Text style={staticStyles.montantPrimary}>{formatMontant(card.montant)}</Text>
+      <Text style={staticStyles.sousTitrePrimary}>{card.sousTitre}</Text>
     </View>
   );
 }
 
 function CardWhite({ card }: Readonly<{ card: CardData }>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeCardWhiteStyles(colors), [colors]);
   return (
-    <View style={[styles.card, styles.cardWhite]}>
+    <View style={[staticStyles.card, styles.cardWhite]}>
       <Text style={styles.titreWhite}>{card.titre}</Text>
       <Text style={styles.montantWhite}>{formatMontant(card.montant)}</Text>
       <Text style={styles.sousTitreWhite}>{card.sousTitre}</Text>
@@ -78,6 +82,8 @@ function CardWhite({ card }: Readonly<{ card: CardData }>) {
 
 export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeDotsStyles(colors), [colors]);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / (CARD_WIDTH + CARD_GAP));
@@ -86,8 +92,8 @@ export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
 
   if (loading) {
     return (
-      <View style={styles.loadingBox}>
-        <ActivityIndicator color={Colors.primary} />
+      <View style={staticStyles.loadingBox}>
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -118,7 +124,7 @@ export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={staticStyles.container}>
       <FlatList
         data={cards}
         keyExtractor={(item) => item.id}
@@ -126,7 +132,7 @@ export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
         snapToInterval={CARD_WIDTH + CARD_GAP}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={staticStyles.list}
         ItemSeparatorComponent={CardSeparator}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -136,7 +142,7 @@ export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
             : <CardWhite card={item} />
         }
       />
-      <View style={styles.dots}>
+      <View style={staticStyles.dots}>
         {cards.map((card, i) => (
           <View key={card.id} style={[styles.dot, i === activeIndex && styles.dotActive]} />
         ))}
@@ -145,24 +151,32 @@ export default function GainsCarousel({ gains, loading }: Readonly<Props>) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 12 },
-  list:      { paddingHorizontal: H_PADDING },
-  loadingBox:{ height: CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+// Styles statiques (pas de couleur dynamique)
+const staticStyles = StyleSheet.create({
+  container:  { gap: 12 },
+  list:       { paddingHorizontal: H_PADDING },
+  loadingBox: { height: CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+  card:       { width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 16, padding: 20, overflow: 'hidden', justifyContent: 'space-between' },
+  dots:       { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
 
-  card: { width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 16, padding: 20, overflow: 'hidden', justifyContent: 'space-between' },
-
-  cardPrimary:      { backgroundColor: Colors.primary },
+  // Carte primary — textes toujours blancs sur fond coloré
   titrePrimary:     { color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: '500' },
   montantPrimary:   { color: '#ffffff', fontSize: 28, fontWeight: '700' },
   sousTitrePrimary: { color: 'rgba(255,255,255,0.65)', fontSize: 13 },
-
-  cardWhite:     { backgroundColor: Colors.surface, borderWidth: 1, borderColor: slate[200] },
-  titreWhite:    { color: slate[500], fontSize: 14, fontWeight: '500', textAlign: 'center' },
-  montantWhite:  { color: slate[900], fontSize: 26, fontWeight: '700', textAlign: 'center' },
-  sousTitreWhite:{ color: slate[400], fontSize: 13, textAlign: 'center' },
-
-  dots:      { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
-  dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: slate[300] },
-  dotActive: { width: 18, backgroundColor: Colors.primary, borderRadius: 3 },
 });
+
+function makeCardWhiteStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    cardWhite:     { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+    titreWhite:    { color: colors.textMuted, fontSize: 14, fontWeight: '500', textAlign: 'center' },
+    montantWhite:  { color: colors.text, fontSize: 26, fontWeight: '700', textAlign: 'center' },
+    sousTitreWhite:{ color: colors.textLight, fontSize: 13, textAlign: 'center' },
+  });
+}
+
+function makeDotsStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
+    dotActive: { width: 18, backgroundColor: colors.primary, borderRadius: 3 },
+  });
+}

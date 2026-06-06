@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { Colors, blue, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 interface Props {
   value: string;
@@ -11,6 +11,8 @@ interface Props {
 
 export function OtpInput({ value, onChange, error, length = 5 }: Readonly<Props>) {
   const refs = useRef<(TextInput | null)[]>([]);
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   function handleChange(text: string, index: number) {
     const digit = text.replace(/\D/g, '').slice(-1);
@@ -28,21 +30,26 @@ export function OtpInput({ value, onChange, error, length = 5 }: Readonly<Props>
     }
   }
 
+  const positions = useMemo(
+    () => Array.from({ length }, (_, i) => i),
+    [length],
+  );
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.boxes}>
-        {Array.from({ length }).map((_, i) => (
+        {positions.map((pos) => (
           <TextInput
-            key={i}
-            ref={el => { refs.current[i] = el; }}
-            style={[styles.box, value[i] ? styles.boxFilled : undefined, error ? styles.boxError : undefined]}
-            value={value[i] ?? ''}
-            onChangeText={t => handleChange(t, i)}
-            onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, i)}
+            key={`digit-${pos}`}
+            ref={el => { refs.current[pos] = el; }}
+            style={[styles.box, value[pos] ? styles.boxFilled : undefined, error ? styles.boxError : undefined]}
+            value={value[pos] ?? ''}
+            onChangeText={t => handleChange(t, pos)}
+            onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, pos)}
             keyboardType="number-pad"
             maxLength={1}
             selectTextOnFocus
-            accessibilityLabel={`Chiffre ${i + 1} du code`}
+            accessibilityLabel={`Chiffre ${pos + 1} du code`}
           />
         ))}
       </View>
@@ -51,18 +58,20 @@ export function OtpInput({ value, onChange, error, length = 5 }: Readonly<Props>
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 8, alignItems: 'center' },
-  boxes:   { flexDirection: 'row', gap: 10 },
-  box: {
-    width: 52, height: 58,
-    borderWidth: 1.5, borderColor: slate[200],
-    borderRadius: 12,
-    textAlign: 'center',
-    fontSize: 22, fontWeight: '700', color: Colors.text,
-    backgroundColor: Colors.surface,
-  },
-  boxFilled: { borderColor: Colors.primary, backgroundColor: blue[50] },
-  boxError:  { borderColor: '#ef4444' },
-  error:     { fontSize: 12, color: '#ef4444' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    wrapper: { gap: 8, alignItems: 'center' },
+    boxes:   { flexDirection: 'row', gap: 10 },
+    box: {
+      width: 52, height: 58,
+      borderWidth: 1.5, borderColor: colors.border,
+      borderRadius: 12,
+      textAlign: 'center',
+      fontSize: 22, fontWeight: '700', color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    boxFilled: { borderColor: colors.primary, backgroundColor: colors.cardActive },
+    boxError:  { borderColor: colors.danger },
+    error:     { fontSize: 12, color: colors.danger },
+  });
+}

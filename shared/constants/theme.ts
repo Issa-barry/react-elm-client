@@ -41,6 +41,8 @@ export const Colors = {
   background:       '#e8edf5',   // fond général (inspiré PayPal)
   surface:          '#ffffff',   // cartes / composants sur le fond
   overlay:          '#ffffff',
+  surfaceAlt:       slate[50],   // fond alternatif (inputs verrouillés, en-têtes)
+  cardActive:       blue[50],    // fond d'item actif/sélectionné
 
   // textes
   text:             slate[950],  // quasi-noir
@@ -56,6 +58,12 @@ export const Colors = {
   warning:          '#f59e0b',
   success:          '#22c55e',
 
+  // fonds sémantiques (badges, alertes)
+  dangerBg:         '#fee2e2',
+  warningBg:        '#fef9c3',
+  successBg:        '#dcfce7',
+  infoBg:           '#eff6ff',
+
   // tab bar
   tabActive:        blue[600],
   tabInactive:      slate[400],
@@ -68,6 +76,48 @@ export const Colors = {
     icon:           slate[500],
     tabIconDefault: slate[400],
     tabIconSelected: blue[600],
+  },
+} as const;
+
+// ─── Palette sombre ────────────────────────────────────────────────────────
+export const DarkColors = {
+  primary:      blue[400],
+  primaryLight: blue[900],
+  primaryDark:  blue[300],
+
+  background:   slate[950],
+  surface:      slate[800],
+  overlay:      slate[800],
+  surfaceAlt:   slate[700],   // inputs verrouillés, en-têtes de table
+  cardActive:   blue[900],    // item actif en mode sombre
+
+  text:         slate[50],
+  textMuted:    slate[400],
+  textLight:    slate[500],
+
+  border:       slate[700],
+  borderLight:  slate[800],
+
+  danger:       '#ef4444',
+  warning:      '#f59e0b',
+  success:      '#22c55e',
+
+  // fonds sémantiques sombres
+  dangerBg:     '#450a0a',
+  warningBg:    '#451a03',
+  successBg:    '#052e16',
+  infoBg:       '#172554',
+
+  tabActive:    blue[400],
+  tabInactive:  slate[500],
+
+  light: {
+    text:            slate[50],
+    background:      slate[950],
+    tint:            blue[400],
+    icon:            slate[400],
+    tabIconDefault:  slate[500],
+    tabIconSelected: blue[400],
   },
 } as const;
 

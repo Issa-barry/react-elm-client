@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   StyleSheet, Text, TextInput, TouchableOpacity, View,
   type TextInputProps,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 
 interface Props extends Omit<TextInputProps, 'secureTextEntry'> {
   label: string;
@@ -13,6 +13,8 @@ interface Props extends Omit<TextInputProps, 'secureTextEntry'> {
 
 export function PasswordInput({ label, error, style, ...rest }: Readonly<Props>) {
   const [visible, setVisible] = useState(false);
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.wrapper}>
@@ -21,13 +23,13 @@ export function PasswordInput({ label, error, style, ...rest }: Readonly<Props>)
         <TextInput
           style={[styles.input, style]}
           secureTextEntry={!visible}
-          placeholderTextColor={slate[400]}
+          placeholderTextColor={colors.textLight}
           autoCapitalize="none"
           autoComplete="password"
           {...rest}
         />
         <TouchableOpacity onPress={() => setVisible(v => !v)} style={styles.toggle} accessibilityLabel={visible ? 'Masquer' : 'Afficher'}>
-          <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={slate[400]} />
+          <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -35,21 +37,23 @@ export function PasswordInput({ label, error, style, ...rest }: Readonly<Props>)
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 6 },
-  label: { fontSize: 14, fontWeight: '600', color: Colors.text },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: slate[200],
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 14,
-  },
-  rowError: { borderColor: '#ef4444' },
-  input: { flex: 1, fontSize: 15, color: Colors.text },
-  toggle: { paddingLeft: 8 },
-  error: { fontSize: 12, color: '#ef4444', marginTop: 2 },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    wrapper: { gap: 6 },
+    label: { fontSize: 14, fontWeight: '600', color: colors.text },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 50,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 14,
+    },
+    rowError: { borderColor: colors.danger },
+    input: { flex: 1, fontSize: 15, color: colors.text },
+    toggle: { paddingLeft: 8 },
+    error: { fontSize: 12, color: colors.danger, marginTop: 2 },
+  });
+}

@@ -5,6 +5,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { useFocusEffect } from 'expo-router';
 
 import { Colors } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { IconSymbol } from '@/shared/components/ui/icon-symbol';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
@@ -31,6 +32,7 @@ function formatPhone(phone: string): string {
 export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
   const { logout } = useLogout();
+  const { isDark, toggle: toggleTheme } = useTheme();
   const { user, loading: userLoading } = useCurrentUser();
   const [qrZoomed, setQrZoomed] = useState(false);
   const { gains, loading: gainsLoading, refreshing, error: gainsError, load, refetch } = useGainsMine();
@@ -72,6 +74,14 @@ export default function AccueilScreen() {
 
       {/* Header bleu */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
+        {/* Gauche : déconnexion */}
+        <TouchableOpacity
+          style={[styles.headerBtn, { top: insets.top + 12, left: 16 }]}
+          onPress={logout}
+          accessibilityLabel="Se déconnecter">
+          <Text style={styles.logoutIcon}>⏻</Text>
+        </TouchableOpacity>
+        {/* Droite : notifications + thème */}
         <TouchableOpacity
           style={[styles.headerBtn, { top: insets.top + 12, right: 60 }]}
           onPress={() => {}}
@@ -80,9 +90,9 @@ export default function AccueilScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.headerBtn, { top: insets.top + 12, right: 16 }]}
-          onPress={logout}
-          accessibilityLabel="Se déconnecter">
-          <Text style={styles.logoutIcon}>⏻</Text>
+          onPress={toggleTheme}
+          accessibilityLabel={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}>
+          <IconSymbol name={isDark ? 'sun.max.fill' : 'moon.fill'} size={20} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
