@@ -106,6 +106,11 @@ export interface LoginResponse {
 // ─── Réinitialisation mot de passe ──────────────────────────────────────────
 export type ForgotStep = 'phone' | 'otp' | 'new_password' | 'done';
 
+export interface ForgotLookupResponse {
+  message: string;
+  masked_email: string;
+}
+
 export interface ForgotPasswordData {
   codePays: string;
   telephoneLocal: string;

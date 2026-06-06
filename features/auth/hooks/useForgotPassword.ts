@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
+import { router } from 'expo-router';
 
 import { DEFAULT_COUNTRY, buildE164, type ForgotStep } from '../types/auth.types';
 import { validateOtp, validatePassword, validatePhone } from '../validation/auth.validation';
 import { authService } from '../services/auth.service';
+import { secureStorage } from '../services/secure-storage.service';
 
 interface ForgotState {
   step: ForgotStep;
@@ -10,12 +12,15 @@ interface ForgotState {
   prefix: string;
   telephoneLocal: string;
   telephone: string;
+  maskedEmail: string;
   otp: string;
   password: string;
   passwordConfirmation: string;
   loading: boolean;
   errors: Record<string, string>;
   globalError: string;
+  autoLoginLoading: boolean;
+  autoLoginError: string;
 }
 
 const INITIAL: ForgotState = {
@@ -24,12 +29,15 @@ const INITIAL: ForgotState = {
   prefix:               DEFAULT_COUNTRY.prefix,
   telephoneLocal:       '',
   telephone:            '',
+  maskedEmail:          '',
   otp:                  '',
   password:             '',
   passwordConfirmation: '',
   loading:              false,
   errors:               {},
   globalError:          '',
+  autoLoginLoading:     false,
+  autoLoginError:       '',
 };
 
 function err(setState: React.Dispatch<React.SetStateAction<ForgotState>>, errors: Record<string, string>) {
@@ -56,8 +64,9 @@ export function useForgotPassword() {
     if (phoneErr) { err(setState, { telephoneLocal: phoneErr }); return; }
 
     const telephone = buildE164(state.prefix, state.telephoneLocal);
-    await authService.forgotLookup(telephone); // réponse neutre
-    setState(prev => ({ ...prev, loading: false, telephone, step: 'otp' }));
+    const result = await authService.forgotLookup(telephone);
+    if (!result.ok) { globalErr(setState, result.error); return; }
+    setState(prev => ({ ...prev, loading: false, telephone, maskedEmail: result.data.masked_email, step: 'otp' }));
   }, [state.codePays, state.prefix, state.telephoneLocal]);
 
   const submitOtp = useCallback(async () => {
@@ -84,10 +93,30 @@ export function useForgotPassword() {
 
   const submit = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, errors: {}, globalError: '' }));
-    if (state.step === 'phone')        await submitPhone();
-    else if (state.step === 'otp')     await submitOtp();
+    if (state.step === 'phone')             await submitPhone();
+    else if (state.step === 'otp')          await submitOtp();
     else if (state.step === 'new_password') await submitNewPassword();
   }, [state.step, submitPhone, submitOtp, submitNewPassword]);
 
-  return { state, set, setCountry, submit };
+  const autoLogin = useCallback(async () => {
+    setState(prev => ({ ...prev, autoLoginLoading: true, autoLoginError: '' }));
+
+    const result = await authService.login({
+      codePays:       '',
+      telephoneLocal: '',
+      telephone:      state.telephone,
+      password:       state.password,
+    });
+
+    if (!result.ok) {
+      setState(prev => ({ ...prev, autoLoginLoading: false, autoLoginError: result.error }));
+      return;
+    }
+
+    await secureStorage.saveToken(result.data.token);
+    await secureStorage.saveUser(result.data.user);
+    router.replace('/(tabs)');
+  }, [state.telephone, state.password]);
+
+  return { state, set, setCountry, submit, autoLogin };
 }

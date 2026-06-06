@@ -95,6 +95,13 @@ export function validateStepPassword(password: string, passwordConfirmation: str
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+// ─── OTP ─────────────────────────────────────────────────────────────────────
+export function validateOtp(value: string): string | null {
+  if (!value || value.trim().length === 0) return 'Le code est requis.';
+  if (!/^\d{5}$/.test(value.trim()))       return 'Le code doit contenir exactement 5 chiffres.';
+  return null;
+}
+
 // ─── Login ────────────────────────────────────────────────────────────────────
 export function validateLogin(data: LoginInput): ValidationResult {
   const errors: Record<string, string> = {};

@@ -1,6 +1,7 @@
 import type {
   ApiResult,
   FullRegisterData,
+  ForgotLookupResponse,
   LoginInput,
   LoginResponse,
   LookupResponse,
@@ -13,17 +14,23 @@ const USE_MOCK = !BASE_URL;
 // ─── Helper POST ──────────────────────────────────────────────────────────────
 
 async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 480_000);
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
+    clearTimeout(timer);
     const json = await res.json();
     if (!res.ok) return { ok: false, error: json.message ?? json.error ?? 'Erreur serveur.' };
     return { ok: true, data: json as T };
-  } catch {
-    return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };
+  } catch (e: unknown) {
+    clearTimeout(timer);
+    const isTimeout = e instanceof Error && e.name === 'AbortError';
+    return { ok: false, error: isTimeout ? 'Délai dépassé. Vérifiez votre connexion.' : 'Connexion impossible. Vérifiez votre réseau.' };
   }
 }
 
@@ -102,10 +109,10 @@ export const authService = {
     });
   },
 
-  async forgotLookup(telephone: string): Promise<ApiResult<{ sent: boolean }>> {
+  async forgotLookup(telephone: string): Promise<ApiResult<ForgotLookupResponse>> {
     if (USE_MOCK) {
       await sleep();
-      return { ok: true, data: { sent: true } };
+      return { ok: true, data: { message: 'Code envoyé.', masked_email: 'm***@example.com' } };
     }
     return post('/api/auth/password/lookup', { telephone });
   },
