@@ -96,17 +96,17 @@ const styles = StyleSheet.create({
   // ── Hero ────────────────────────────────────────────────────────────────
   hero: {
     width: '100%',
-    backgroundColor: blue[800],
+    backgroundColor: blue[900],
     justifyContent: 'space-between',
   },
   heroImg: {
-    opacity: 0.30,
+    opacity: 0.5,
     transform: [{ scale: 1.08 }],
   },
   heroDimmer: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: blue[700],
-    opacity: 0.60,
+    opacity: 0.6,
   },
   heroTop: {
     paddingHorizontal: 24,
