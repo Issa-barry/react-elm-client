@@ -32,6 +32,7 @@ export interface AuthUser {
   prenom: string;
   nom: string;
   telephone: string;
+  email?: string;
   roles: UserRole[];
   qr_payload?: string | null;
 }

@@ -1,15 +1,16 @@
 import { ActivityIndicator, AppState, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 import { Colors } from '@/shared/constants/theme';
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { IconSymbol } from '@/shared/components/ui/icon-symbol';
-import { useLogout } from '@/features/auth/hooks/useLogout';
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser';
+import { getInitiales } from '@/shared/utils/initiales';
 import { useGainsMine } from '@/features/gains/hooks/useGainsMine';
+import { fetchNotifications } from '@/features/notifications/services/notifications-api.service';
 import { useQrPayload } from '../hooks/useQrPayload';
 import GainsCarousel from '../components/GainsCarousel';
 import SoldeVehicules from '../components/SoldeVehicules';
@@ -31,18 +32,20 @@ function formatPhone(phone: string): string {
 
 export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
-  const { logout } = useLogout();
   const { isDark, toggle: toggleTheme, colors } = useTheme();
   const { user, loading: userLoading } = useCurrentUser();
   const [qrZoomed, setQrZoomed] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const appStateRef = useRef(AppState.currentState);
   const { gains, loading: gainsLoading, refreshing, error: gainsError, load, refetch } = useGainsMine();
   const { qrPayload, loading: qrLoading, load: loadQr } = useQrPayload();
 
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const nom    = user ? `${user.prenom} ${user.nom}` : '';
-  const phone  = user?.telephone ?? '';
-  const qrData = qrPayload ?? user?.id ?? 'eau-la-maman';
+  const nom      = user ? `${user.prenom} ${user.nom}` : '';
+  const phone    = user?.telephone ?? '';
+  const qrData   = qrPayload ?? user?.id ?? 'eau-la-maman';
+  const initiales = getInitiales(user?.prenom, user?.nom);
 
   useEffect(() => { load(); loadQr(); }, [load, loadQr]);
 
@@ -51,10 +54,26 @@ export default function AccueilScreen() {
   );
 
   useEffect(() => {
-    const sub = AppState.addEventListener('change', state => {
-      if (state === 'active') refetch();
+    let cancelled = false;
+
+    async function pollNotifs() {
+      try {
+        const res = await fetchNotifications();
+        if (!cancelled) setUnreadCount(res.unread_count);
+      } catch { /* silencieux */ }
+    }
+
+    pollNotifs();
+
+    const sub = AppState.addEventListener('change', next => {
+      if (appStateRef.current.match(/inactive|background/) && next === 'active') {
+        refetch();
+        pollNotifs();
+      }
+      appStateRef.current = next;
     });
-    return () => sub.remove();
+
+    return () => { cancelled = true; sub.remove(); };
   }, [refetch]);
 
   return (
@@ -73,19 +92,24 @@ export default function AccueilScreen() {
 
       {/* Header bleu */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        {/* Gauche : déconnexion */}
+        {/* Gauche : avatar profil */}
         <TouchableOpacity
-          style={[styles.headerBtn, { top: insets.top + 12, left: 16 }]}
-          onPress={logout}
-          accessibilityLabel="Se déconnecter">
-          <Text style={styles.logoutIcon}>⏻</Text>
+          style={[styles.headerBtn, styles.avatarBtn, { top: insets.top + 12, left: 16 }]}
+          onPress={() => router.push('/profil')}
+          accessibilityLabel="Ouvrir le profil">
+          <Text style={styles.avatarInitiales}>{initiales}</Text>
         </TouchableOpacity>
         {/* Droite : notifications + thème */}
         <TouchableOpacity
           style={[styles.headerBtn, { top: insets.top + 12, right: 60 }]}
-          onPress={() => {}}
+          onPress={() => router.push('/(tabs)/notifications')}
           accessibilityLabel="Notifications">
           <IconSymbol name="bell.fill" size={20} color={colors.headerFg} />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.headerBtn, { top: insets.top + 12, right: 16 }]}
@@ -159,7 +183,18 @@ function makeStyles(colors: typeof Colors) {
       width: 36, height: 36, borderRadius: 18,
       alignItems: 'center', justifyContent: 'center',
     },
-    logoutIcon: { fontSize: 18, color: colors.headerFg },
+    avatarBtn: {
+      backgroundColor: 'rgba(255,255,255,0.25)',
+    },
+    avatarInitiales: { fontSize: 13, fontWeight: '700', color: colors.headerFg },
+    badge: {
+      position: 'absolute', top: -2, right: -2,
+      minWidth: 16, height: 16, borderRadius: 8,
+      backgroundColor: colors.danger,
+      alignItems: 'center', justifyContent: 'center',
+      paddingHorizontal: 3,
+    },
+    badgeText: { fontSize: 9, fontWeight: '700', color: '#fff' },
     qrAnchor: {
       position: 'absolute',
       top: HEADER_HEIGHT - QR_OVERLAP,

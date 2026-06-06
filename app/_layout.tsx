@@ -80,6 +80,13 @@ function ThemedApp() {
         <Stack.Screen name="vehicule/[id]"       options={{ headerBackTitle: 'Retour', ...headerScreenOptions }} />
         <Stack.Screen name="vehicule/frais/[id]" options={{ headerBackTitle: 'Retour', ...headerScreenOptions }} />
         <Stack.Screen name="vehicule/proposer"   options={{ title: 'Proposer un véhicule', headerBackTitle: 'Retour', ...headerScreenOptions }} />
+        <Stack.Screen name="profil/index"         options={{ headerShown: false }} />
+        <Stack.Screen name="profil/modifier"      options={{ headerShown: false }} />
+        <Stack.Screen name="profil/mot-de-passe"  options={{ headerShown: false }} />
+        <Stack.Screen name="profil/notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="profil/contact"       options={{ headerShown: false }} />
+        <Stack.Screen name="profil/conditions"    options={{ headerShown: false }} />
+        <Stack.Screen name="profil/biometrie"     options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </ThemeProvider>
