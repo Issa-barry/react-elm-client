@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
 import { useTheme } from '@/shared/contexts/ThemeContext';
+import { IconSymbol } from '@/shared/components/ui/icon-symbol';
 import { useVehiculesMine } from '@/features/vehicule/hooks/useVehiculesMine';
 import { useLivraisonsEnCours } from '../hooks/useLivraisonsEnCours';
 import type { LivraisonEnCours } from '../types/livraison.types';
@@ -179,6 +180,7 @@ function LivraisonCard({ item, photoUrl, vehiculeType, onPress }: Readonly<CardP
         <View style={styles.badgeDot} />
         <Text style={styles.badgeLabel}>En cours</Text>
       </View>
+      <IconSymbol name="info.circle.fill" size={20} color={colors.primary} />
     </TouchableOpacity>
   );
 }

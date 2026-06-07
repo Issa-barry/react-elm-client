@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 
 import { useTheme } from '@/shared/contexts/ThemeContext';
 import { scanService } from '../services/scan.service';
-import type { ClientScan, ScanResult, UserScan } from '../types/scan.types';
+import type { ClientScan, LivraisonScan, ScanResult, UserScan } from '../types/scan.types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -174,6 +174,78 @@ function ClientCard({ client, onClose }: Readonly<{ client: ClientScan; onClose:
   );
 }
 
+// ─── Carte livraison / commande ───────────────────────────────────────────────
+
+function LivraisonCard({ livraison, onClose }: Readonly<{ livraison: LivraisonScan; onClose: () => void }>) {
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeCardStyles(colors), [colors]);
+
+  const isCommande  = livraison.type === 'commande';
+  const accentColor = isCommande ? '#7c3aed' : colors.primary;
+
+  function Row({ icon, value }: { icon: string; value?: string | null }) {
+    if (!value) return null;
+    return (
+      <View style={styles.detailRow}>
+        <Text style={styles.detailIcon}>{icon}</Text>
+        <Text style={styles.detailText}>{value}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Pressable style={styles.overlay} onPress={onClose}>
+      <Pressable
+        style={[styles.card, { paddingBottom: insets.bottom + 16 }]}
+        onPress={e => e.stopPropagation()}>
+
+        {/* En-tête */}
+        <View style={styles.cardHeader}>
+          <View style={[styles.avatar, { backgroundColor: accentColor }]}>
+            <Text style={styles.avatarText}>{isCommande ? '🛒' : '🚚'}</Text>
+          </View>
+          <View style={styles.cardTitles}>
+            <Text style={styles.cardNom}>{livraison.reference}</Text>
+            <Text style={styles.cardRef}>{livraison.statut_label}</Text>
+          </View>
+          <View style={[styles.inactiveBadge, { backgroundColor: isCommande ? '#ede9fe' : colors.primaryLight }]}>
+            <Text style={[styles.inactiveBadgeText, { color: accentColor }]}>
+              {livraison.nb_packs ?? 0} pack{(livraison.nb_packs ?? 0) > 1 ? 's' : ''}
+            </Text>
+          </View>
+        </View>
+
+        {/* Détails */}
+        <View style={styles.details}>
+          {isCommande ? (
+            <>
+              <Row icon="🏪" value={livraison.site_source} />
+              <Row icon="👤" value={livraison.client_nom} />
+              <Row icon="📞" value={livraison.client_telephone ? formatPhone(livraison.client_telephone) : null} />
+              <Row icon="📍" value={livraison.client_adresse} />
+              <Row icon="📅" value={livraison.date_commande} />
+            </>
+          ) : (
+            <>
+              <Row icon="🏪" value={`Départ : ${livraison.site_source ?? '—'}`} />
+              <Row icon="📦" value={`Arrivée : ${livraison.site_destination ?? '—'}`} />
+              <Row icon="📅" value={livraison.date_depart ? `Parti le ${livraison.date_depart}` : null} />
+              <Row icon="🎯" value={livraison.date_arrivee_prevue ? `Attendu le ${livraison.date_arrivee_prevue}` : null} />
+            </>
+          )}
+          <Row icon="🚐" value={livraison.vehicule ? `${livraison.vehicule.nom} — ${livraison.vehicule.immatriculation}` : null} />
+          <Row icon="👥" value={livraison.equipe_nom !== '—' ? livraison.equipe_nom : null} />
+        </View>
+
+        <TouchableOpacity style={[styles.closeBtn, { backgroundColor: accentColor }]} onPress={onClose} activeOpacity={0.7}>
+          <Text style={styles.closeBtnText}>Fermer</Text>
+        </TouchableOpacity>
+      </Pressable>
+    </Pressable>
+  );
+}
+
 // ─── Écran scanner ────────────────────────────────────────────────────────────
 
 export default function ScannerScreen() {
@@ -308,8 +380,9 @@ export default function ScannerScreen() {
       </TouchableOpacity>
 
       {/* Résultat */}
-      {result?.type === 'user'   && <UserCard   user={result.data}   onClose={handleClose} />}
-      {result?.type === 'client' && <ClientCard client={result.data} onClose={handleClose} />}
+      {result?.type === 'user'      && <UserCard      user={result.data}      onClose={handleClose} />}
+      {result?.type === 'client'    && <ClientCard    client={result.data}    onClose={handleClose} />}
+      {result?.type === 'livraison' && <LivraisonCard livraison={result.data} onClose={handleClose} />}
     </View>
   );
 }
