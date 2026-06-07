@@ -37,6 +37,7 @@ export default function AccueilScreen() {
   const [qrZoomed, setQrZoomed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const appStateRef = useRef(AppState.currentState);
+  const scrollRef = useRef<ScrollView>(null);
   const { gains, loading: gainsLoading, refreshing, error: gainsError, load, refetch } = useGainsMine();
   const { qrPayload, loading: qrLoading, load: loadQr } = useQrPayload();
 
@@ -58,6 +59,7 @@ export default function AccueilScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
       refetch();
       pollNotifs();
     }, [refetch, pollNotifs])
@@ -76,6 +78,7 @@ export default function AccueilScreen() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.scroll}
       contentContainerStyle={{ paddingBottom: 32 }}
       showsVerticalScrollIndicator={false}
@@ -182,9 +185,10 @@ function makeStyles(colors: typeof Colors) {
       alignItems: 'center', justifyContent: 'center',
     },
     avatarBtn: {
-      backgroundColor: 'rgba(255,255,255,0.25)',
+      backgroundColor: '#ffffff',
+      width: 44, height: 44, borderRadius: 22,
     },
-    avatarInitiales: { fontSize: 13, fontWeight: '700', color: colors.headerFg },
+    avatarInitiales: { fontSize: 16, fontWeight: '700', color: '#111111' },
     badge: {
       position: 'absolute', top: -2, right: -2,
       minWidth: 16, height: 16, borderRadius: 8,
