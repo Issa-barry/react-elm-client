@@ -56,7 +56,7 @@ const BASE_VEHICULES = {
 };
 
 const LIVRAISON_FIXTURE = {
-  id: 'l1', reference: 'LIV-001', statut: 'transit' as const,
+  id: 'l1', reference: 'LIV-001', statut: 'transit' as const, statut_label: 'En transit',
   site_source: 'Entrepôt Central', site_destination: 'Quartier Matam',
   nb_packs: 50, equipe_nom: 'Équipe A', date_depart: '2026-06-01T08:00:00Z',
   date_arrivee_prevue: '2026-06-01T10:00:00Z',
