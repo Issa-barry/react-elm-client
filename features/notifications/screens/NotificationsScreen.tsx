@@ -39,8 +39,8 @@ function NotificationItem({
       {!item.lu && <View style={[styles.dot, { backgroundColor: colors.primary }]} />}
       <View style={styles.itemContent}>
         <Text style={[styles.titre, { color: colors.text }]}>{item.titre ?? 'Notification'}</Text>
-        <Text style={[styles.message, { color: colors.textSecondary ?? colors.text }]}>{item.message}</Text>
-        <Text style={[styles.date, { color: colors.textSecondary ?? colors.text }]}>
+        <Text style={[styles.message, { color: colors.textMuted }]}>{item.message}</Text>
+        <Text style={[styles.date, { color: colors.textMuted }]}>
           {new Date(item.created_at).toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: 'short',
