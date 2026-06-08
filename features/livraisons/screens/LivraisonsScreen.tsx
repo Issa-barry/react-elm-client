@@ -141,7 +141,12 @@ function DetailSheet({ item, photoUrl, vehiculeType, onClose }: Readonly<DetailS
             <View style={styles.sheetSection}>
               <Text style={styles.sheetSectionTitle}>Code QR</Text>
               <View style={styles.qrWrapper}>
-                <QRCode value={item.reference} size={180} color="#000000" backgroundColor="#ffffff" />
+                <QRCode
+                  value={`${process.env.EXPO_PUBLIC_API_URL ?? ''}/scan/livraison/${item.reference}`}
+                  size={180}
+                  color="#000000"
+                  backgroundColor="#ffffff"
+                />
               </View>
               <Text style={styles.qrRef}>{item.reference}</Text>
             </View>

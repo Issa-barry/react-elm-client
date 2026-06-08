@@ -90,18 +90,27 @@ type QrType = 'user' | 'client' | 'livraison';
 
 function detectQrType(raw: string): QrType {
   const upper = raw.trim().toUpperCase();
-  if (upper.startsWith('CLI-'))              return 'client';
+  if (upper.startsWith('CLI-')) return 'client';
   if (upper.startsWith('VT-') || upper.startsWith('TR-')) return 'livraison';
+  // URL encodant une livraison : https://…/scan/livraison/VT-xxxxx
+  if (upper.includes('/SCAN/LIVRAISON/')) return 'livraison';
   return 'user';
+}
+
+function extractLivraisonRef(raw: string): string {
+  const idx = raw.toUpperCase().indexOf('/SCAN/LIVRAISON/');
+  if (idx !== -1) return raw.slice(idx + '/scan/livraison/'.length);
+  return raw;
 }
 
 // ─── Résolution mock ─────────────────────────────────────────────────────────
 
 async function scanMock(value: string, qrType: QrType): Promise<ApiResult<ScanResult>> {
   await new Promise<void>(r => setTimeout(r, 700));
-  if (qrType === 'user')      return { ok: true, data: { type: 'user',      data: MOCK_USER } };
-  if (qrType === 'client')    return { ok: true, data: { type: 'client',    data: MOCK_CLIENT } };
-  const mock = value.toUpperCase().startsWith('TR-') ? MOCK_TRANSFERT : MOCK_COMMANDE;
+  if (qrType === 'user')   return { ok: true, data: { type: 'user',   data: MOCK_USER } };
+  if (qrType === 'client') return { ok: true, data: { type: 'client', data: MOCK_CLIENT } };
+  const ref = extractLivraisonRef(value).toUpperCase();
+  const mock = ref.startsWith('TR-') ? MOCK_TRANSFERT : MOCK_COMMANDE;
   return { ok: true, data: { type: 'livraison', data: mock } };
 }
 
@@ -109,7 +118,8 @@ async function scanMock(value: string, qrType: QrType): Promise<ApiResult<ScanRe
 
 async function scanApi(value: string, qrType: QrType): Promise<ApiResult<ScanResult>> {
   if (qrType === 'livraison') {
-    const res = await authGet<LivraisonScan>(`/api/v1/mobile/livraisons/scan/${encodeURIComponent(value)}`);
+    const ref = extractLivraisonRef(value);
+    const res = await authGet<LivraisonScan>(`/api/v1/mobile/livraisons/scan/${encodeURIComponent(ref)}`);
     if (!res.ok) return res;
     return { ok: true, data: { type: 'livraison', data: res.data } };
   }
