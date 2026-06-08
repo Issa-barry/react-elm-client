@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import Svg, { Path } from 'react-native-svg';
 
-import { Colors, blue } from '@/shared/constants/theme';
+import { Colors } from '@/shared/constants/theme';
 import { secureStorage } from '@/features/auth/services/secure-storage.service';
 
 SplashScreen.preventAutoHideAsync();
@@ -52,6 +52,7 @@ export default function Index() {
     }, 2200);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -73,7 +74,7 @@ export default function Index() {
       {/* Nom + tagline */}
       <Animated.View style={[styles.textBlock, { opacity: textFade }]}>
         <Text style={styles.appName}>Eau la maman</Text>
-        <Text style={styles.tagline}>Distribution d'eau minérale</Text>
+        <Text style={styles.tagline}>Distribution d&apos;eau minérale</Text>
       </Animated.View>
 
       {/* Points de chargement animés */}
@@ -98,6 +99,7 @@ function DotPulse({ delay }: { delay: number }) {
         Animated.timing(op, { toValue: 0.3, duration: 400, useNativeDriver: true }),
       ])
     ).start();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <Animated.View style={[styles.dot, { opacity: op }]} />;

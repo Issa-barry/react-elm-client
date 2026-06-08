@@ -23,7 +23,7 @@ export default function ProposerVehiculeRoute() {
         <Text style={styles.icon}>🚚</Text>
         <Text style={styles.titre}>Formulaire à venir</Text>
         <Text style={styles.desc}>
-          Cette section permettra de soumettre une demande de véhicule à l'équipe Eau la maman.
+          Cette section permettra de soumettre une demande de véhicule à l&apos;équipe Eau la maman.
         </Text>
       </View>
     </>

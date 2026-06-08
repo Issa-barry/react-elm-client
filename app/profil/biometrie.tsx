@@ -30,7 +30,7 @@ export default function BiometrieScreen() {
         <Text style={styles.title}>Face ID / Empreinte digitale</Text>
         <Text style={styles.subtitle}>Disponible prochainement</Text>
         <Text style={styles.desc}>
-          L'authentification biométrique vous permettra de vous connecter rapidement et en toute sécurité sans saisir votre mot de passe.
+          L&apos;authentification biométrique vous permettra de vous connecter rapidement et en toute sécurité sans saisir votre mot de passe.
         </Text>
 
         <View style={styles.card}>
