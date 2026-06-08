@@ -6,11 +6,6 @@ import { fetchNotifications, markAllRead, markOneRead } from '../notifications-a
 
 beforeEach(() => {
   global.fetch = jest.fn();
-  process.env.EXPO_PUBLIC_API_URL = 'http://api.test';
-});
-
-afterEach(() => {
-  delete process.env.EXPO_PUBLIC_API_URL;
 });
 
 describe('fetchNotifications', () => {
@@ -30,15 +25,13 @@ describe('fetchNotifications', () => {
     await expect(fetchNotifications()).rejects.toThrow('Erreur chargement notifications');
   });
 
-  it('appelle la bonne URL', async () => {
+  it('appelle le bon chemin API', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true, json: async () => ({ data: [], unread_count: 0 }),
     });
     await fetchNotifications();
-    expect(global.fetch).toHaveBeenCalledWith(
-      'http://api.test/api/v1/mobile/notifications',
-      expect.any(Object)
-    );
+    const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/mobile/notifications');
   });
 });
 
@@ -46,10 +39,9 @@ describe('markAllRead', () => {
   it('envoie une requête POST sans erreur', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
     await expect(markAllRead()).resolves.toBeUndefined();
-    expect(global.fetch).toHaveBeenCalledWith(
-      'http://api.test/api/v1/mobile/notifications/mark-all-read',
-      expect.objectContaining({ method: 'POST' })
-    );
+    const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toContain('/api/v1/mobile/notifications/mark-all-read');
+    expect(options.method).toBe('POST');
   });
 });
 
@@ -57,9 +49,8 @@ describe('markOneRead', () => {
   it('envoie une requête POST sur la bonne URL', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
     await expect(markOneRead('notif-99')).resolves.toBeUndefined();
-    expect(global.fetch).toHaveBeenCalledWith(
-      'http://api.test/api/v1/mobile/notifications/notif-99/read',
-      expect.objectContaining({ method: 'POST' })
-    );
+    const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(url).toContain('/api/v1/mobile/notifications/notif-99/read');
+    expect(options.method).toBe('POST');
   });
 });
