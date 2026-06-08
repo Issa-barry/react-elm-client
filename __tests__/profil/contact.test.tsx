@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
-import { Linking, Alert } from 'react-native';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -22,10 +22,22 @@ jest.mock('@/shared/contexts/ThemeContext', () => ({
       background: '#fff', surface: '#fff', surfaceAlt: '#f5f5f5',
       text: '#000', textMuted: '#999', primary: '#2563eb',
       primaryLight: '#dbeafe', border: '#e5e7eb',
-      danger: '#dc2626', dangerBg: '#fee2e2',
+      danger: '#dc2626', dangerBg: '#fee2e2', primaryFg: '#fff',
     },
     isDark: false,
   }),
+}));
+
+jest.mock('@/features/auth/hooks/useCurrentUser', () => ({
+  useCurrentUser: jest.fn().mockReturnValue({
+    user: { id: 'u1', prenom: 'Moussa', nom: 'CAMARA', telephone: '+224621234567' },
+    loading: false,
+  }),
+}));
+
+const mockEnvoyerMessage = jest.fn();
+jest.mock('@/features/contact/services/contact-api.service', () => ({
+  envoyerMessage: (...args: unknown[]) => mockEnvoyerMessage(...args),
 }));
 
 import ContactScreen from '../../app/profil/contact';
@@ -34,54 +46,52 @@ import ContactScreen from '../../app/profil/contact';
 
 describe('ContactScreen', () => {
   beforeEach(() => {
-    jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
-    jest.spyOn(Linking, 'openURL').mockResolvedValue();
+    jest.clearAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    mockEnvoyerMessage.mockResolvedValue({ ok: true });
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('affiche les deux options de contact', () => {
+  it('affiche le titre Contact et le bouton Envoyer', () => {
     render(<ContactScreen />);
-    expect(screen.getByText('Email')).toBeTruthy();
-    expect(screen.getByText('Téléphone')).toBeTruthy();
+    expect(screen.getByText('Contact')).toBeTruthy();
+    expect(screen.getByText('Envoyer le message')).toBeTruthy();
   });
 
-  it('ouvre le client email au clic sur Email', async () => {
+  it('le bouton est désactivé si le message est vide', () => {
     render(<ContactScreen />);
-    const emailBtn = screen.getByText('contact@eaulamaman.com').parent?.parent;
-    if (emailBtn) fireEvent.press(emailBtn);
-
-    await new Promise(r => setTimeout(r, 0));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      expect.stringContaining('mailto:contact@eaulamaman.com')
-    );
+    const btn = screen.getByText('Envoyer le message');
+    expect(btn).toBeTruthy();
+    fireEvent.press(btn);
+    expect(mockEnvoyerMessage).not.toHaveBeenCalled();
   });
 
-  it('ouvre le téléphone au clic sur Téléphone', async () => {
+  it('envoie le message et affiche une alerte de succès', async () => {
     render(<ContactScreen />);
-    const telBtn = screen.getByText('+224620000000').parent?.parent;
-    if (telBtn) fireEvent.press(telBtn);
 
-    await new Promise(r => setTimeout(r, 0));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      expect.stringContaining('tel:')
-    );
+    const input = screen.getByPlaceholderText(/Décrivez votre demande/i);
+    fireEvent.changeText(input, 'Bonjour, j\'ai un problème.');
+    fireEvent.press(screen.getByText('Envoyer le message'));
+
+    await waitFor(() => {
+      expect(mockEnvoyerMessage).toHaveBeenCalledWith('Bonjour, j\'ai un problème.');
+      expect(Alert.alert).toHaveBeenCalledWith('Message envoyé', expect.any(String), expect.any(Array));
+    });
   });
 
-  it('affiche une alerte si canOpenURL retourne false (email)', async () => {
-    jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(false);
-
+  it("affiche une alerte d'erreur si l'envoi échoue", async () => {
+    mockEnvoyerMessage.mockResolvedValue({ ok: false, error: 'Erreur réseau.' });
     render(<ContactScreen />);
-    const emailBtn = screen.getByText('contact@eaulamaman.com').parent?.parent;
-    if (emailBtn) fireEvent.press(emailBtn);
 
-    await new Promise(r => setTimeout(r, 0));
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'Impossible d\'ouvrir',
-      expect.stringContaining('contact@eaulamaman.com')
-    );
+    const input = screen.getByPlaceholderText(/Décrivez votre demande/i);
+    fireEvent.changeText(input, 'Message de test');
+    fireEvent.press(screen.getByText('Envoyer le message'));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith('Erreur', 'Erreur réseau.');
+    });
   });
 });
