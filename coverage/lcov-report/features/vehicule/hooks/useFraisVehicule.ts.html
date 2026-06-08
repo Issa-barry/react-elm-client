@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -99,19 +99,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useCallback, useState } from 'react';
 import { fraisService } from '../services/frais.service';
@@ -123,20 +123,20 @@ interface State {
   error: string | null;
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >useFraisVehicule(</span>vehiculeId: string) {
-  const [state, setState] = <span class="cstat-no" title="statement not covered" >useState&lt;State&gt;({ frais: [], loading: true, error: null });</span>
+export function useFraisVehicule(vehiculeId: string) {
+  const [state, setState] = useState&lt;State&gt;({ frais: [], loading: true, error: null });
 &nbsp;
-  const load = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    setState(<span class="fstat-no" title="function not covered" >pr</span>ev =&gt; (<span class="cstat-no" title="statement not covered" >{ ...prev, loading: true, error: null })</span>);</span>
-    const result = <span class="cstat-no" title="statement not covered" >await fraisService.getFraisVehicule(vehiculeId);</span>
-<span class="cstat-no" title="statement not covered" >    if (result.ok) {</span>
-<span class="cstat-no" title="statement not covered" >      setState({ frais: result.data, loading: false, error: null });</span>
+  const load = useCallback(async () =&gt; {
+    setState(prev =&gt; ({ ...prev, loading: true, error: null }));
+    const result = await fraisService.getFraisVehicule(vehiculeId);
+    if (result.ok) {
+      setState({ frais: result.data, loading: false, error: null });
     } else {
-<span class="cstat-no" title="statement not covered" >      setState({ frais: [], loading: false, error: result.error });</span>
+      setState({ frais: [], loading: false, error: result.error });
     }
   }, [vehiculeId]);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return { ...state, load };</span>
+  return { ...state, load };
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -145,7 +145,7 @@ export function <span class="fstat-no" title="function not covered" >useFraisVeh
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:15:19.891Z
+                at 2026-06-08T16:03:05.266Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>19/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>12/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -105,76 +105,76 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { secureStorage } from '@/features/auth/services/secure-storage.service';
 import type { ApiResult } from '@/features/auth/types/auth.types';
 import type { FraisApi } from '../types/frais.types';
 &nbsp;
-const BASE_URL = <span class="cstat-no" title="statement not covered" >process.env.EXPO_PUBLIC_API_URL ?? '';</span>
-const USE_MOCK = <span class="cstat-no" title="statement not covered" >!BASE_URL;</span>
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
+const USE_MOCK = !BASE_URL;
 &nbsp;
-async function <span class="fstat-no" title="function not covered" >authGet&lt;</span>T&gt;(path: string): Promise&lt;ApiResult&lt;T&gt;&gt; {
-  const token = <span class="cstat-no" title="statement not covered" >await secureStorage.getToken();</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-    const res = <span class="cstat-no" title="statement not covered" >await fetch(`${BASE_URL}${path}`, {</span>
+async function authGet&lt;T&gt;(path: string): Promise&lt;ApiResult&lt;T&gt;&gt; {
+  const token = await secureStorage.getToken();
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
       headers: {
         Accept: 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : <span class="branch-1 cbranch-no" title="branch not covered" >{})</span>,
       },
     });
-    const json = <span class="cstat-no" title="statement not covered" >await res.json();</span>
-<span class="cstat-no" title="statement not covered" >    if (res.status === 401) <span class="cstat-no" title="statement not covered" >return { ok: false, error: 'Session expirée. Reconnectez-vous.' };</span></span>
-<span class="cstat-no" title="statement not covered" >    if (!res.ok) <span class="cstat-no" title="statement not covered" >return { ok: false, error: json.message ?? 'Erreur serveur.' };</span></span>
-<span class="cstat-no" title="statement not covered" >    return { ok: true, data: (json.data ?? json) as T };</span>
+    const json = await res.json();
+    if (res.status === 401) return { ok: false, error: 'Session expirée. Reconnectez-vous.' };
+    if (!res.ok) return { ok: false, error: json.message ?? 'Erreur serveur.' };
+    return { ok: true, data: (json.data ?? <span class="branch-1 cbranch-no" title="branch not covered" >json)</span> as T };
   } catch {
-<span class="cstat-no" title="statement not covered" >    return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };</span>
+    return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };
   }
 }
 &nbsp;
-const MOCK: FraisApi[] = <span class="cstat-no" title="statement not covered" >[</span>
+const MOCK: FraisApi[] = [
   { id: 'f1', date: '2026-06-01', montant: 50_000, type_code: 'carburant', type_label: 'Carburant', statut: 'approuve', commentaire: null, mois: 'Juin 2026' },
 ];
 &nbsp;
-export const fraisService = <span class="cstat-no" title="statement not covered" >{</span>
-<span class="fstat-no" title="function not covered" >  as</span>ync getFraisVehicule(vehiculeId: string): Promise&lt;ApiResult&lt;FraisApi[]&gt;&gt; {
-<span class="cstat-no" title="statement not covered" >    if (USE_MOCK) {</span>
-<span class="cstat-no" title="statement not covered" >      await new Promise&lt;void&gt;(<span class="fstat-no" title="function not covered" >r </span>=&gt; <span class="cstat-no" title="statement not covered" >setTimeout(r, 600))</span>;</span>
-<span class="cstat-no" title="statement not covered" >      return { ok: true, data: MOCK };</span>
+export const fraisService = {
+  async getFraisVehicule(vehiculeId: string): Promise&lt;ApiResult&lt;FraisApi[]&gt;&gt; {
+    if (USE_MOCK) {
+      await new Promise&lt;void&gt;(r =&gt; setTimeout(r, 600));
+      return { ok: true, data: MOCK };
     }
-<span class="cstat-no" title="statement not covered" >    return authGet&lt;FraisApi[]&gt;(`/api/v1/mobile/vehicules/${vehiculeId}/frais`);</span>
+    return authGet&lt;FraisApi[]&gt;(`/api/v1/mobile/vehicules/${vehiculeId}/frais`);
   },
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -184,7 +184,7 @@ export const fraisService = <span class="cstat-no" title="statement not covered"
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:15:19.891Z
+                at 2026-06-08T16:03:05.266Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

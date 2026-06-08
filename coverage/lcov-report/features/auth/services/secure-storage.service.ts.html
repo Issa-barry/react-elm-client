@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">21.42% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">27.27% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/11</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -94,31 +94,31 @@
 <a name='L29'></a><a href='#L29'>29</a>
 <a name='L30'></a><a href='#L30'>30</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as SecureStore from 'expo-secure-store';
@@ -127,27 +127,27 @@ const TOKEN_KEY = 'auth_token';
 const USER_KEY  = 'auth_user';
 &nbsp;
 export const secureStorage = {
-<span class="fstat-no" title="function not covered" >  as</span>ync saveToken(token: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await SecureStore.setItemAsync(TOKEN_KEY, token);</span>
+  async saveToken(token: string): Promise&lt;void&gt; {
+    await SecureStore.setItemAsync(TOKEN_KEY, token);
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  as</span>ync getToken(): Promise&lt;string | null&gt; {
-<span class="cstat-no" title="statement not covered" >    return SecureStore.getItemAsync(TOKEN_KEY);</span>
+  async getToken(): Promise&lt;string | null&gt; {
+    return SecureStore.getItemAsync(TOKEN_KEY);
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  as</span>ync saveUser(user: object): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));</span>
+  async saveUser(user: object): Promise&lt;void&gt; {
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  as</span>ync getUser&lt;T&gt;(): Promise&lt;T | null&gt; {
-    const raw = <span class="cstat-no" title="statement not covered" >await SecureStore.getItemAsync(USER_KEY);</span>
-<span class="cstat-no" title="statement not covered" >    if (!raw) <span class="cstat-no" title="statement not covered" >return null;</span></span>
-<span class="cstat-no" title="statement not covered" >    try { <span class="cstat-no" title="statement not covered" >return JSON.parse(raw) as T; </span>} catch { <span class="cstat-no" title="statement not covered" >return null; </span>}</span>
+  async getUser&lt;T&gt;(): Promise&lt;T | null&gt; {
+    const raw = await SecureStore.getItemAsync(USER_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw) as T; } catch { return null; }
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  as</span>ync clear(): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await SecureStore.deleteItemAsync(TOKEN_KEY);</span>
-<span class="cstat-no" title="statement not covered" >    await SecureStore.deleteItemAsync(USER_KEY);</span>
+  async clear(): Promise&lt;void&gt; {
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(USER_KEY);
   },
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -157,7 +157,7 @@ export const secureStorage = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:15:19.891Z
+                at 2026-06-08T16:03:05.266Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

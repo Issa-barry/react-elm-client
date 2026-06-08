@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
@@ -151,7 +151,16 @@
 <a name='L86'></a><a href='#L86'>86</a>
 <a name='L87'></a><a href='#L87'>87</a>
 <a name='L88'></a><a href='#L88'>88</a>
-<a name='L89'></a><a href='#L89'>89</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -164,6 +173,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -199,6 +212,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -220,6 +236,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -239,10 +256,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useMemo } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 &nbsp;
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { formatMontant } from '@/shared/utils/format';
 import type { GainsParVehicule } from '@/features/gains/types/gains.types';
 &nbsp;
@@ -253,6 +272,9 @@ interface Props {
 }
 &nbsp;
 function <span class="fstat-no" title="function not covered" >VehiculeRow(</span>{ item, isLast }: Readonly&lt;{ item: GainsParVehicule; isLast: boolean }&gt;) {
+  const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
+  const styles = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >makeStyles(colors),</span> [colors]);</span>
+&nbsp;
   function <span class="fstat-no" title="function not covered" >handlePress(</span>) {
 <span class="cstat-no" title="statement not covered" >    router.push({</span>
       pathname: `/vehicule/${item.vehicule_id}`,
@@ -285,9 +307,12 @@ function <span class="fstat-no" title="function not covered" >VehiculeRow(</span
 }
 &nbsp;
 export default function <span class="fstat-no" title="function not covered" >SoldeVehicules(</span>{ parVehicule, loading, error }: Readonly&lt;Props&gt;) {
+  const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
+  const styles = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >makeStyles(colors),</span> [colors]);</span>
+&nbsp;
   const renderBody = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (loading) {</span>
-<span class="cstat-no" title="statement not covered" >      return &lt;View style={styles.centerBox}&gt;&lt;ActivityIndicator size="small" color={Colors.primary} /&gt;&lt;/View&gt;;</span>
+<span class="cstat-no" title="statement not covered" >      return &lt;View style={styles.centerBox}&gt;&lt;ActivityIndicator size="small" color={colors.primary} /&gt;&lt;/View&gt;;</span>
     }
 <span class="cstat-no" title="statement not covered" >    if (error) {</span>
 <span class="cstat-no" title="statement not covered" >      return &lt;View style={styles.centerBox}&gt;&lt;Text style={styles.errorText}&gt;Impossible de charger les données.&lt;/Text&gt;&lt;/View&gt;;</span>
@@ -308,25 +333,27 @@ export default function <span class="fstat-no" title="function not covered" >Sol
   );
 }
 &nbsp;
-const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.create({</span>
-  container:  { paddingHorizontal: 24, gap: 12 },
-  titre:      { fontSize: 17, fontWeight: '700', color: Colors.text },
-  card:       { backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: slate[200], overflow: 'hidden', minHeight: 60 },
-  row:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  rowBorder:  { borderBottomWidth: 1, borderBottomColor: slate[100] },
-  rowLeft:    { flex: 1, gap: 3 },
-  nom:        { fontSize: 15, fontWeight: '600', color: Colors.text },
-  immat:      { fontSize: 12, color: slate[400] },
-  montantsRow:{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  montantLabel:  { fontSize: 12, color: slate[400] },
-  montantValeur: { fontSize: 13, fontWeight: '600', color: Colors.text },
-  montantSep:    { fontSize: 12, color: slate[300] },
-  montantRestant:{ color: '#f97316' },
-  chevron:    { fontSize: 22, color: slate[300], marginLeft: 8 },
-  centerBox:  { paddingVertical: 20, alignItems: 'center' },
-  emptyText:  { fontSize: 13, color: slate[400] },
-  errorText:  { fontSize: 13, color: '#dc2626' },
-});
+function <span class="fstat-no" title="function not covered" >makeStyles(</span>colors: ReturnType&lt;typeof useTheme&gt;['colors']) {
+<span class="cstat-no" title="statement not covered" >  return StyleSheet.create({</span>
+    container:  { paddingHorizontal: 24, gap: 12 },
+    titre:      { fontSize: 17, fontWeight: '700', color: colors.text },
+    card:       { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', minHeight: 60 },
+    row:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+    rowBorder:  { borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+    rowLeft:    { flex: 1, gap: 3 },
+    nom:        { fontSize: 15, fontWeight: '600', color: colors.text },
+    immat:      { fontSize: 12, color: colors.textMuted },
+    montantsRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+    montantLabel:  { fontSize: 12, color: colors.textMuted },
+    montantValeur: { fontSize: 13, fontWeight: '600', color: colors.text },
+    montantSep:    { fontSize: 12, color: colors.textLight },
+    montantRestant:{ color: colors.warning },
+    chevron:    { fontSize: 22, color: colors.textLight, marginLeft: 8 },
+    centerBox:  { paddingVertical: 20, alignItems: 'center' },
+    emptyText:  { fontSize: 13, color: colors.textMuted },
+    errorText:  { fontSize: 13, color: colors.danger },
+  });
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -334,7 +361,7 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:15:19.891Z
+                at 2026-06-08T16:03:05.266Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

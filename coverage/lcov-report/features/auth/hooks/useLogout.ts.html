@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -101,29 +101,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
@@ -131,11 +131,11 @@ import { router } from 'expo-router';
 &nbsp;
 import { secureStorage } from '../services/secure-storage.service';
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >useLogout(</span>) {
-  const [loading, setLoading] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
+export function useLogout() {
+  const [loading, setLoading] = useState(false);
 &nbsp;
-  const logout = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    Alert.alert(</span>
+  const logout = useCallback(() =&gt; {
+    Alert.alert(
       'Déconnexion',
       'Voulez-vous vraiment vous déconnecter ?',
       [
@@ -143,18 +143,18 @@ export function <span class="fstat-no" title="function not covered" >useLogout(<
         {
           text: 'Se déconnecter',
           style: 'destructive',
-          onPress: <span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {
-<span class="cstat-no" title="statement not covered" >            setLoading(true);</span>
-<span class="cstat-no" title="statement not covered" >            await secureStorage.clear();</span>
-<span class="cstat-no" title="statement not covered" >            setLoading(false);</span>
-<span class="cstat-no" title="statement not covered" >            router.replace('/(auth)/login');</span>
+          onPress: async () =&gt; {
+            setLoading(true);
+            await secureStorage.clear();
+            setLoading(false);
+            router.replace('/(auth)/login');
           },
         },
       ],
     );
   }, []);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return { logout, loading };</span>
+  return { logout, loading };
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -163,7 +163,7 @@ export function <span class="fstat-no" title="function not covered" >useLogout(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:15:19.891Z
+                at 2026-06-08T16:03:05.266Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

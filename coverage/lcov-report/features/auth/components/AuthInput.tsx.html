@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
@@ -126,7 +126,42 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -164,37 +199,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useMemo } from 'react';
+import {
   StyleSheet, Text, TextInput, View,
   type TextInputProps,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, slate } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 &nbsp;
 interface Props extends TextInputProps {
   label: string;
@@ -203,6 +216,9 @@ interface Props extends TextInputProps {
 }
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >AuthInput(</span>{ label, error, locked, style, ...rest }: Readonly&lt;Props&gt;) {
+  const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
+  const styles = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >makeStyles(colors),</span> [colors]);</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;View style={styles.wrapper}&gt;
       &lt;Text style={styles.label}&gt;{label}&lt;/Text&gt;
@@ -213,13 +229,13 @@ export function <span class="fstat-no" title="function not covered" >AuthInput(<
       ]}&gt;
         &lt;TextInput
           style={[styles.input, style]}
-          placeholderTextColor={slate[400]}
+          placeholderTextColor={colors.textLight}
           autoCapitalize="none"
           editable={!locked}
           {...rest}
         /&gt;
         {locked &amp;&amp; (
-          &lt;Ionicons name="lock-closed" size={16} color={slate[400]} style={styles.lockIcon} /&gt;
+          &lt;Ionicons name="lock-closed" size={16} color={colors.textLight} style={styles.lockIcon} /&gt;
         )}
       &lt;/View&gt;
       {error ? &lt;Text style={styles.error}&gt;{error}&lt;/Text&gt; : null}
@@ -227,31 +243,33 @@ export function <span class="fstat-no" title="function not covered" >AuthInput(<
   );
 }
 &nbsp;
-const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.create({</span>
-  wrapper: { gap: 6 },
-  label:   { fontSize: 14, fontWeight: '600', color: Colors.text },
+function <span class="fstat-no" title="function not covered" >makeStyles(</span>colors: ReturnType&lt;typeof useTheme&gt;['colors']) {
+<span class="cstat-no" title="statement not covered" >  return StyleSheet.create({</span>
+    wrapper: { gap: 6 },
+    label:   { fontSize: 14, fontWeight: '600', color: colors.text },
 &nbsp;
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 50,
-    borderWidth: 1.5,
-    borderColor: slate[200],
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 14,
-  },
-  inputError:  { borderColor: '#ef4444' },
-  inputLocked: { backgroundColor: slate[50], borderColor: slate[200] },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 50,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 14,
+    },
+    inputError:  { borderColor: colors.danger },
+    inputLocked: { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
 &nbsp;
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.text,
-  },
-  lockIcon: { marginLeft: 6 },
-  error: { fontSize: 12, color: '#ef4444', marginTop: 2 },
-});
+    input: {
+      flex: 1,
+      fontSize: 15,
+      color: colors.text,
+    },
+    lockIcon: { marginLeft: 6 },
+    error: { fontSize: 12, color: colors.danger, marginTop: 2 },
+  });
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -259,7 +277,7 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:15:19.891Z
+                at 2026-06-08T16:03:05.266Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

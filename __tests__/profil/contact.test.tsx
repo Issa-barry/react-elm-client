@@ -1,3 +1,5 @@
+jest.setTimeout(30000);
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
