@@ -1,45 +1,52 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
 
 import { HapticTab } from '@/shared/components/haptic-tab';
 import { IconSymbol } from '@/shared/components/ui/icon-symbol';
-import { Colors } from '@/shared/constants/theme';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+
+function IconAccueil({ color }: Readonly<{ color: string }>) {
+  return <IconSymbol size={28} name="house.fill" color={color} />;
+}
+
+function IconLivraisons({ color }: Readonly<{ color: string }>) {
+  return <IconSymbol size={28} name="shippingbox.fill" color={color} />;
+}
+
+function IconVehicules({ color }: Readonly<{ color: string }>) {
+  return <IconSymbol size={28} name="car.fill" color={color} />;
+}
 
 export default function TabLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.tabActive,
-        tabBarInactiveTintColor: Colors.tabInactive,
-        headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarActiveTintColor:   colors.tabActive,
+        tabBarInactiveTintColor: colors.tabInactive,
+        headerShown:             false,
+        tabBarButton:            HapticTab,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
-          borderTopWidth: 1,
+          backgroundColor: colors.surface,
+          borderTopColor:  colors.border,
+          borderTopWidth:  1,
         },
       }}>
       <Tabs.Screen
         name="index"
-        options={{
-          title: 'Accueil',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        options={{ title: 'Accueil',    tabBarIcon: IconAccueil }}
       />
       <Tabs.Screen
-        name="gains"
-        options={{
-          title: 'Gains',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="dollarsign.circle.fill" color={color} />,
-        }}
+        name="livraisons"
+        options={{ title: 'Livraisons', tabBarIcon: IconLivraisons }}
       />
       <Tabs.Screen
         name="vehicules"
-        options={{
-          title: 'Véhicules',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="car.fill" color={color} />,
-        }}
+        options={{ title: 'Véhicules', tabBarIcon: IconVehicules }}
       />
+      {/* notifications et gains restent comme routes mais masqués de la barre */}
+      <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="gains"         options={{ href: null }} />
     </Tabs>
   );
 }

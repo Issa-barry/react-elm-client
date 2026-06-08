@@ -1,15 +1,20 @@
-import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Colors, blue, slate } from '@/shared/constants/theme';
-import { formatMontant, formatDate } from '@/shared/utils/format';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  CATEGORIE_CONFIG,
-  getFraisGroupes,
-  type CategorieFrais,
-  type Frais,
-} from '../data/mock-frais';
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { formatMontant, formatDate } from '@/shared/utils/format';
+import { useFraisVehicule } from '../hooks/useFraisVehicule';
+import type { FraisApi } from '../types/frais.types';
 
 interface Props {
   id: string;
@@ -17,90 +22,120 @@ interface Props {
   immatriculation: string;
 }
 
-// ─── Filtres catégorie ─────────────────────────────────────────────────────
-type FiltreCategorie = 'tous' | CategorieFrais;
+// ─── Config catégories ────────────────────────────────────────────────────────
 
-const FILTRES_CATEGORIE: { key: FiltreCategorie; label: string }[] = [
-  { key: 'tous',        label: 'Tous' },
-  { key: 'carburant',   label: 'Carburant' },
-  { key: 'reparation',  label: 'Réparation' },
-  { key: 'entretien',   label: 'Entretien' },
-  { key: 'pneus',       label: 'Pneus' },
-  { key: 'lavage',      label: 'Lavage' },
-  { key: 'autre',       label: 'Autre' },
-];
-
-const STATUT_CONFIG = {
-  paye:       { label: 'Payé',       bg: '#dcfce7', text: '#16a34a' },
-  en_attente: { label: 'En attente', bg: '#fef9c3', text: '#ca8a04' },
+const ICONE_PAR_CODE: Record<string, string> = {
+  carburant:  '⛽',
+  reparation: '🔧',
+  entretien:  '🛠️',
+  pneus:      '🔵',
+  lavage:     '🫧',
+  autre:      '📋',
 };
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+function iconeType(code: string): string {
+  return ICONE_PAR_CODE[code] ?? '📋';
+}
 
-// ─── Composants ───────────────────────────────────────────────────────────
-const STATUT_MONTANT_COLOR: Record<StatutFrais, string> = {
-  paye:       Colors.text,
-  en_attente: '#ca8a04',
-};
+const FILTRE_TOUS = 'tous';
 
-function FraisRow({ item }: Readonly<{ item: Frais }>) {
-  const cat = CATEGORIE_CONFIG[item.categorie];
+// ─── Composants ──────────────────────────────────────────────────────────────
+
+function getStatut(statut: string, colors: ReturnType<typeof useTheme>['colors']) {
+  if (statut === 'approuve') return { label: 'Approuvé', color: colors.success, bg: colors.successBg };
+  if (statut === 'rejete')   return { label: 'Rejeté',   color: colors.danger,  bg: colors.dangerBg  };
+  return                             { label: 'En attente', color: colors.warning, bg: colors.warningBg };
+}
+
+function FraisRow({ item }: Readonly<{ item: FraisApi }>) {
+  const { colors } = useTheme();
+  const styles  = useMemo(() => makeStyles(colors), [colors]);
+  const statut  = getStatut(item.statut, colors);
 
   return (
     <View style={styles.row}>
       <View style={styles.rowIconBox}>
-        <Text style={styles.rowIconText}>{cat.icone}</Text>
+        <Text style={styles.rowIconText}>{iconeType(item.type_code)}</Text>
       </View>
       <View style={styles.rowLeft}>
-        <Text style={styles.rowRef}>{item.reference}</Text>
-        <Text style={styles.rowMeta}>{formatDate(item.date)}</Text>
+        <Text style={styles.rowRef}>{item.type_label}</Text>
+        <Text style={styles.rowMeta}>{item.date ? formatDate(item.date) : '—'}</Text>
+        {item.commentaire ? <Text style={styles.rowComment} numberOfLines={1}>{item.commentaire}</Text> : null}
       </View>
       <View style={styles.rowRight}>
-        <Text style={[styles.rowMontant, { color: STATUT_MONTANT_COLOR[item.statut] }]}>
-          {formatMontant(item.montant)}
-        </Text>
-        <View style={[styles.badge, { backgroundColor: slate[100] }]}>
-          <Text style={[styles.badgeText, { color: slate[600] }]}>{cat.label}</Text>
+        <Text style={styles.rowMontant}>{formatMontant(item.montant)}</Text>
+        <View style={[styles.badge, { backgroundColor: statut.bg }]}>
+          <Text style={[styles.badgeText, { color: statut.color }]}>{statut.label}</Text>
         </View>
       </View>
     </View>
   );
 }
 
-// ─── Écran ─────────────────────────────────────────────────────────────────
+// ─── Écran principal ─────────────────────────────────────────────────────────
+
 export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readonly<Props>) {
   const insets = useSafeAreaInsets();
-  const [filtreCategorie, setFiltreCategorie] = useState<FiltreCategorie>('tous');
-  const [moisActif, setMoisActif]             = useState<string>('tous');
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [filtreCode, setFiltreCode] = useState<string>(FILTRE_TOUS);
+  const [moisActif, setMoisActif]   = useState<string>(FILTRE_TOUS);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const tousGroupes = getFraisGroupes(id);
+  const { frais, loading, error, load } = useFraisVehicule(id);
 
-  const moisDisponibles = useMemo(() => tousGroupes.map((g) => g.mois), [tousGroupes]);
+  useEffect(() => { load(); }, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const groupesFiltres = useMemo(() => {
-    return tousGroupes
-      .filter((g) => moisActif === 'tous' || g.mois === moisActif)
-      .map((g) => ({
-        ...g,
-        items: g.items.filter(
-          (i) => filtreCategorie === 'tous' || i.categorie === filtreCategorie,
-        ),
-      }))
-      .filter((g) => g.items.length > 0)
-      .map((g) => ({
-        ...g,
-        total: g.items.reduce((s, i) => s + i.montant, 0),
-      }));
-  }, [filtreCategorie, moisActif, tousGroupes]);
+  async function handleRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
 
-  const totalFiltré  = groupesFiltres.reduce((s, g) => s + g.total, 0);
-  const nombreFiltré = groupesFiltres.reduce((n, g) => n + g.items.length, 0);
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    return frais.filter(f => {
+      if (seen.has(f.type_code)) return false;
+      seen.add(f.type_code);
+      return true;
+    }).map(f => ({ code: f.type_code, label: f.type_label }));
+  }, [frais]);
+
+  const moisDisponibles = useMemo(
+    () => [...new Set(frais.map(f => f.mois))],
+    [frais],
+  );
+
+  const groupes = useMemo(() => {
+    const filtered = frais
+      .filter(f => moisActif === FILTRE_TOUS || f.mois === moisActif)
+      .filter(f => filtreCode === FILTRE_TOUS || f.type_code === filtreCode);
+
+    const byMois: Record<string, FraisApi[]> = {};
+    filtered.forEach(f => {
+      if (!byMois[f.mois]) byMois[f.mois] = [];
+      byMois[f.mois].push(f);
+    });
+
+    return Object.entries(byMois).map(([mois, items]) => ({
+      mois,
+      items,
+      total: items.reduce((s, i) => s + i.montant, 0),
+    }));
+  }, [frais, filtreCode, moisActif]);
+
+  const totalFiltré  = groupes.reduce((s, g) => s + g.total, 0);
+  const nombreFiltré = groupes.reduce((n, g) => n + g.items.length, 0);
 
   return (
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-      showsVerticalScrollIndicator={false}>
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[colors.primary]} tintColor={colors.primary} />
+      }>
 
       {/* Résumé */}
       <View style={styles.resumeCard}>
@@ -120,54 +155,51 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
       </View>
 
       {/* Filtre catégorie */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtreList}>
-        {FILTRES_CATEGORIE.map((f) => {
-          const isActive = f.key === filtreCategorie;
-          return (
-            <TouchableOpacity
-              key={f.key}
-              onPress={() => setFiltreCategorie(f.key)}
-              activeOpacity={0.7}
-              style={[styles.chip, isActive && styles.chipActive]}>
-              <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      {/* Filtre mois */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtreList}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtreList}>
         <TouchableOpacity
-          onPress={() => setMoisActif('tous')}
+          key={FILTRE_TOUS}
+          onPress={() => setFiltreCode(FILTRE_TOUS)}
           activeOpacity={0.7}
-          style={[styles.chip, styles.chipMois, moisActif === 'tous' && styles.chipMoisActive]}>
-          <Text style={[styles.chipLabel, moisActif === 'tous' && styles.chipLabelMoisActive]}>
-            Tous les mois
-          </Text>
+          style={[styles.chip, filtreCode === FILTRE_TOUS && styles.chipActive]}>
+          <Text style={[styles.chipLabel, filtreCode === FILTRE_TOUS && styles.chipLabelActive]}>Tous</Text>
         </TouchableOpacity>
-        {moisDisponibles.map((mois) => (
+        {categories.map(cat => (
           <TouchableOpacity
-            key={mois}
-            onPress={() => setMoisActif(mois)}
+            key={cat.code}
+            onPress={() => setFiltreCode(cat.code)}
             activeOpacity={0.7}
-            style={[styles.chip, styles.chipMois, moisActif === mois && styles.chipMoisActive]}>
-            <Text style={[styles.chipLabel, moisActif === mois && styles.chipLabelMoisActive]}>
-              {mois}
-            </Text>
+            style={[styles.chip, filtreCode === cat.code && styles.chipActive]}>
+            <Text style={[styles.chipLabel, filtreCode === cat.code && styles.chipLabelActive]}>{cat.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Groupes par mois */}
-      {groupesFiltres.map((groupe) => (
+      {/* Filtre mois */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtreList}>
+        <TouchableOpacity onPress={() => setMoisActif(FILTRE_TOUS)} activeOpacity={0.7}
+          style={[styles.chip, styles.chipMois, moisActif === FILTRE_TOUS && styles.chipMoisActive]}>
+          <Text style={[styles.chipLabel, moisActif === FILTRE_TOUS && styles.chipLabelMoisActive]}>Tous les mois</Text>
+        </TouchableOpacity>
+        {moisDisponibles.map(mois => (
+          <TouchableOpacity key={mois} onPress={() => setMoisActif(mois)} activeOpacity={0.7}
+            style={[styles.chip, styles.chipMois, moisActif === mois && styles.chipMoisActive]}>
+            <Text style={[styles.chipLabel, moisActif === mois && styles.chipLabelMoisActive]}>{mois}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Contenu */}
+      {loading && (
+        <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
+      )}
+
+      {!loading && error && (
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
+      {!loading && !error && groupes.map(groupe => (
         <View key={groupe.mois} style={styles.groupe}>
           <View style={styles.moisHeader}>
             <Text style={styles.moisTitre}>{groupe.mois}</Text>
@@ -184,8 +216,8 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
         </View>
       ))}
 
-      {groupesFiltres.length === 0 && (
-        <View style={styles.empty}>
+      {!loading && !error && groupes.length === 0 && (
+        <View style={styles.center}>
           <Text style={styles.emptyText}>Aucun frais pour ce filtre</Text>
         </View>
       )}
@@ -193,56 +225,55 @@ export default function VehiculeFraisScreen({ id, nom, immatriculation }: Readon
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: Colors.background },
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
-  resumeCard: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20, paddingVertical: 20,
-    marginHorizontal: 16, marginTop: 16,
-    borderRadius: 16, gap: 12,
-  },
-  resumeNom:   { color: '#fff', fontSize: 18, fontWeight: '700' },
-  resumeImmat: { color: 'rgba(255,255,255,0.75)', fontSize: 14 },
-  resumeStats: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
-  resumeStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
-  resumeStatValue: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  resumeStatDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.25)' },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll: { flex: 1, backgroundColor: colors.background },
 
-  filtreList: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  chip: {
-    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20,
-    backgroundColor: Colors.surface, borderWidth: 1, borderColor: slate[200],
-  },
-  chipActive:     { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipLabel:      { fontSize: 13, fontWeight: '500', color: slate[500] },
-  chipLabelActive:{ color: '#fff', fontWeight: '600' },
-  chipMois:       { backgroundColor: Colors.surface, borderColor: slate[200] },
-  chipMoisActive: { backgroundColor: blue[50], borderColor: Colors.primary },
-  chipLabelMoisActive: { color: Colors.primary, fontWeight: '600' },
+    resumeCard: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 20, paddingVertical: 20,
+      marginHorizontal: 16, marginTop: 16,
+      borderRadius: 16, gap: 12,
+    },
+    resumeNom:          { color: '#fff', fontSize: 18, fontWeight: '700' },
+    resumeImmat:        { color: 'rgba(255,255,255,0.75)', fontSize: 14 },
+    resumeStats:        { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },
+    resumeStatLabel:    { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
+    resumeStatValue:    { color: '#fff', fontSize: 16, fontWeight: '700' },
+    resumeStatDivider:  { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.25)' },
 
-  groupe: { marginTop: 8, paddingHorizontal: 16, gap: 8 },
-  moisHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  moisTitre:  { fontSize: 15, fontWeight: '700', color: Colors.text },
-  moisTotal:  { fontSize: 14, fontWeight: '600', color: Colors.primary },
+    filtreList:          { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+    chip:                { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+    chipActive:          { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipLabel:           { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+    chipLabelActive:     { color: '#fff', fontWeight: '600' },
+    chipMois:            { backgroundColor: colors.surface, borderColor: colors.border },
+    chipMoisActive:      { backgroundColor: colors.cardActive, borderColor: colors.primary },
+    chipLabelMoisActive: { color: colors.primary, fontWeight: '600' },
 
-  card: {
-    backgroundColor: Colors.surface, borderRadius: 14,
-    borderWidth: 1, borderColor: slate[200], overflow: 'hidden',
-  },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, gap: 12 },
-  rowIconBox: { width: 38, height: 38, borderRadius: 10, backgroundColor: slate[100], alignItems: 'center', justifyContent: 'center' },
-  rowIconText: { fontSize: 18 },
-  rowLeft: { flex: 1, gap: 3 },
-  rowRef:  { fontSize: 14, fontWeight: '600', color: Colors.text },
-  rowMeta: { fontSize: 12, color: slate[400] },
-  rowRight: { alignItems: 'flex-end', gap: 4 },
-  rowMontant: { fontSize: 14, fontWeight: '700', color: Colors.text },
-  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
-  badgeText: { fontSize: 11, fontWeight: '600' },
-  separator: { height: 1, backgroundColor: slate[100], marginHorizontal: 14 },
+    groupe:    { marginTop: 8, paddingHorizontal: 16, gap: 8 },
+    moisHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    moisTitre: { fontSize: 15, fontWeight: '700', color: colors.text },
+    moisTotal: { fontSize: 14, fontWeight: '600', color: colors.primary },
 
-  empty: { marginTop: 48, alignItems: 'center', paddingHorizontal: 24 },
-  emptyText: { fontSize: 15, color: slate[400], textAlign: 'center' },
-});
+    card:      { backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+    row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, gap: 12 },
+    rowIconBox:{ width: 38, height: 38, borderRadius: 10, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
+    rowIconText:{ fontSize: 18 },
+    rowLeft:   { flex: 1, gap: 3 },
+    rowRef:    { fontSize: 14, fontWeight: '600', color: colors.text },
+    rowMeta:   { fontSize: 12, color: colors.textMuted },
+    rowComment:{ fontSize: 12, color: colors.textMuted, fontStyle: 'italic' },
+    rowRight:  { alignItems: 'flex-end', gap: 4 },
+    rowMontant:{ fontSize: 14, fontWeight: '700', color: colors.text },
+    badge:     { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
+    badgeText: { fontSize: 11, fontWeight: '600' },
+    separator: { height: 1, backgroundColor: colors.borderLight, marginHorizontal: 14 },
+
+    center:    { marginTop: 48, alignItems: 'center', paddingHorizontal: 24 },
+    errorText: { fontSize: 14, color: colors.danger, textAlign: 'center' },
+    emptyText: { fontSize: 15, color: colors.textMuted, textAlign: 'center' },
+  });
+}
