@@ -39,6 +39,48 @@ const MOCK: LivraisonEnCours[] = [
   },
 ];
 
+async function authPost<T>(path: string, body?: unknown): Promise<ApiResult<T>> {
+  const token = await secureStorage.getToken();
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const json = await res.json();
+    if (res.status === 401) return { ok: false, error: 'Session expirée. Reconnectez-vous.' };
+    if (!res.ok) return { ok: false, error: json.message ?? 'Erreur serveur.' };
+    return { ok: true, data: json as T };
+  } catch {
+    return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };
+  }
+}
+
+async function authPut<T>(path: string, body?: unknown): Promise<ApiResult<T>> {
+  const token = await secureStorage.getToken();
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const json = await res.json();
+    if (res.status === 401) return { ok: false, error: 'Session expirée. Reconnectez-vous.' };
+    if (!res.ok) return { ok: false, error: json.message ?? 'Erreur serveur.' };
+    return { ok: true, data: json as T };
+  } catch {
+    return { ok: false, error: 'Connexion impossible. Vérifiez votre réseau.' };
+  }
+}
+
 export const livraisonService = {
   async getLivraisonsEnCours(): Promise<ApiResult<LivraisonEnCours[]>> {
     if (USE_MOCK) {
@@ -46,5 +88,25 @@ export const livraisonService = {
       return { ok: true, data: MOCK };
     }
     return authGet<LivraisonEnCours[]>('/api/livraisons/en-cours');
+  },
+
+  async getTransferts(tab: 'en_cours' | 'historique' = 'en_cours') {
+    return authGet<unknown[]>(`/api/v1/mobile/livraisons-transferts?tab=${tab}`);
+  },
+
+  async getTransfertDetail(id: string) {
+    return authGet<unknown>(`/api/v1/mobile/livraisons-transferts/${id}`);
+  },
+
+  async demarrerChargement(id: string) {
+    return authPost<unknown>(`/api/v1/mobile/livraisons-transferts/${id}/demarrer-chargement`);
+  },
+
+  async saisirQuantitesChargees(id: string, lignes: { id: string; quantite_chargee: number }[]) {
+    return authPut<unknown>(`/api/v1/mobile/livraisons-transferts/${id}/quantites-chargees`, { lignes });
+  },
+
+  async confirmerDepart(id: string) {
+    return authPost<unknown>(`/api/v1/mobile/livraisons-transferts/${id}/confirmer-depart`);
   },
 };
