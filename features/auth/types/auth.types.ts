@@ -67,9 +67,8 @@ export interface RegisterStep2Data {
   prefilled: boolean;
 }
 
-/** Étape 3 : email + mot de passe */
+/** Étape 3 : mot de passe */
 export interface RegisterStep3Data {
-  email: string;
   password: string;
   passwordConfirmation: string;
 }
@@ -86,16 +85,15 @@ export interface LookupResponse {
   prefill?: { prenom: string; nom: string } | null;
 }
 
-/** Réponse après inscription réussie (compte en attente, pas de token) */
+/** Réponse après inscription réussie (compte actif, pas de token) */
 export interface RegisterPendingResponse {
   message: string;
   user: {
     id: string;
     prenom: string;
     nom: string;
-    email: string;
-    status: 'pending';
-    is_active: false;
+    status: 'active';
+    is_active: true;
   };
 }
 

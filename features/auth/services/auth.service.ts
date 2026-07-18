@@ -53,21 +53,20 @@ export const authService = {
     return post('/api/auth/register/check-phone', { telephone });
   },
 
-  /** Crée le compte (statut pending) — retourne message + user sans token */
+  /** Crée le compte (actif immédiatement) — retourne message + user sans token */
   async register(data: FullRegisterData): Promise<ApiResult<RegisterPendingResponse>> {
     if (USE_MOCK) {
       await sleep(1000);
       return {
         ok: true,
         data: {
-          message: 'Compte créé. Vérifiez votre email.',
+          message: 'Compte créé avec succès.',
           user: {
             id: 'mock-001',
             prenom: data.prenom,
             nom: data.nom.toUpperCase(),
-            email: data.email,
-            status: 'pending',
-            is_active: false,
+            status: 'active',
+            is_active: true,
           },
         },
       };
@@ -76,7 +75,6 @@ export const authService = {
       telephone:             data.telephone,
       prenom:                data.prenom,
       nom:                   data.nom,
-      email:                 data.email,
       password:              data.password,
       password_confirmation: data.passwordConfirmation,
     });

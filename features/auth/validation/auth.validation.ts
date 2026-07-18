@@ -3,7 +3,6 @@ import {
   type LoginInput,
   type RegisterStep1Data,
   type RegisterStep2Data,
-  type RegisterStep3Data,
 } from '../types/auth.types';
 
 export interface ValidationResult {
@@ -64,25 +63,6 @@ export function validateStep2(data: RegisterStep2Data): ValidationResult {
     errors.prenom = 'Prénom requis (min. 2 caractères).';
   if (!data.nom || data.nom.trim().length < 2)
     errors.nom = 'Nom requis (min. 2 caractères).';
-  return { valid: Object.keys(errors).length === 0, errors };
-}
-
-// ─── Étape 3 : email ─────────────────────────────────────────────────────────
-export function validateStep3(data: RegisterStep3Data): ValidationResult {
-  const errors: Record<string, string> = {};
-  const emailErr = validateEmail(data.email);
-  if (emailErr) errors.email = emailErr;
-  const pwdErr = validatePassword(data.password);
-  if (pwdErr) errors.password = pwdErr;
-  if (data.password !== data.passwordConfirmation)
-    errors.passwordConfirmation = 'Les mots de passe ne correspondent pas.';
-  return { valid: Object.keys(errors).length === 0, errors };
-}
-
-export function validateStepEmail(email: string): ValidationResult {
-  const errors: Record<string, string> = {};
-  const err = validateEmail(email);
-  if (err) errors.email = err;
   return { valid: Object.keys(errors).length === 0, errors };
 }
 

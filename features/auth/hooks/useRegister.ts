@@ -10,12 +10,11 @@ import {
 import {
   validateStep1,
   validateStep2,
-  validateStepEmail,
   validateStepPassword,
 } from '../validation/auth.validation';
 import { authService } from '../services/auth.service';
 
-export const TOTAL_STEPS = 4;
+export const TOTAL_STEPS = 3;
 
 interface RegisterState {
   step: number;
@@ -32,10 +31,7 @@ interface RegisterState {
   nom: string;
   prefilled: boolean;
 
-  // Step 3 – email
-  email: string;
-
-  // Step 4 – mot de passe
+  // Step 3 – mot de passe
   password: string;
   passwordConfirmation: string;
 
@@ -43,8 +39,6 @@ interface RegisterState {
   loading: boolean;
   errors: Record<string, string>;
   globalError: string;
-
-  registeredEmail: string;
 }
 
 const INITIAL: RegisterState = {
@@ -57,13 +51,11 @@ const INITIAL: RegisterState = {
   prenom:               '',
   nom:                  '',
   prefilled:            false,
-  email:                '',
   password:             '',
   passwordConfirmation: '',
   loading:              false,
   errors:               {},
   globalError:          '',
-  registeredEmail:      '',
 };
 
 export function useRegister() {
@@ -134,19 +126,8 @@ export function useRegister() {
       return;
     }
 
-    // ── Étape 3 : email ───────────────────────────────────────────────────
+    // ── Étape 3 : mot de passe → inscription ─────────────────────────────
     if (state.step === 3) {
-      const { valid, errors } = validateStepEmail(state.email);
-      if (!valid) {
-        setState(prev => ({ ...prev, loading: false, errors }));
-        return;
-      }
-      setState(prev => ({ ...prev, loading: false, step: 4 }));
-      return;
-    }
-
-    // ── Étape 4 : mot de passe → inscription ─────────────────────────────
-    if (state.step === 4) {
       const { valid, errors } = validateStepPassword(state.password, state.passwordConfirmation);
       if (!valid) {
         setState(prev => ({ ...prev, loading: false, errors }));
@@ -161,7 +142,6 @@ export function useRegister() {
         prenom:               state.prenom,
         nom:                  state.nom,
         prefilled:            state.prefilled,
-        email:                state.email,
         password:             state.password,
         passwordConfirmation: state.passwordConfirmation,
       };
@@ -172,12 +152,7 @@ export function useRegister() {
         return;
       }
 
-      setState(prev => ({
-        ...prev,
-        loading:         false,
-        done:            true,
-        registeredEmail: result.data.user.email,
-      }));
+      setState(prev => ({ ...prev, loading: false, done: true }));
     }
   }, [state]);
 

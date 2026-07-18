@@ -77,7 +77,7 @@ export default function ForgotPasswordScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
-      <CloseButton />
+      <CloseButton onPress={() => router.replace('/(auth)/welcome')} />
 
       <ScrollView
         style={styles.scroll}

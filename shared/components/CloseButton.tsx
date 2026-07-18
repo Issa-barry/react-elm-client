@@ -5,12 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/shared/contexts/ThemeContext';
 
-export function CloseButton() {
+export function CloseButton({ onPress }: { onPress?: () => void }) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   return (
     <Pressable
-      onPress={() => router.back()}
+      onPress={onPress ?? (() => router.back())}
       android_ripple={null}
       style={[styles.circle, { top: insets.top + 10, backgroundColor: colors.surface }]}
     >

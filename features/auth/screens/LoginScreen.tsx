@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
+import { useCallback, useMemo } from 'react';
+import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/shared/contexts/ThemeContext';
@@ -17,11 +17,21 @@ export default function LoginScreen() {
   const { state, set, setCountry, submit } = useLogin();
   const canSubmit = state.telephoneLocal.trim().length > 0 && state.password.length > 0;
 
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        router.replace('/(auth)/welcome');
+        return true;
+      });
+      return () => sub.remove();
+    }, []),
+  );
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <CloseButton />
+      <CloseButton onPress={() => router.replace('/(auth)/welcome')} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 32 }]}

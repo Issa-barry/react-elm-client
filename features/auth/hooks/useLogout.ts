@@ -20,7 +20,7 @@ export function useLogout() {
             setLoading(true);
             await secureStorage.clear();
             setLoading(false);
-            router.replace('/(auth)/login');
+            router.replace('/(auth)/welcome');
           },
         },
       ],

@@ -1,8 +1,10 @@
-import { Tabs } from 'expo-router';
+import { useCallback } from 'react';
+import { Tabs, router, useFocusEffect } from 'expo-router';
 
 import { HapticTab } from '@/shared/components/haptic-tab';
 import { IconSymbol } from '@/shared/components/ui/icon-symbol';
 import { useTheme } from '@/shared/contexts/ThemeContext';
+import { secureStorage } from '@/features/auth/services/secure-storage.service';
 
 function IconAccueil({ color }: Readonly<{ color: string }>) {
   return <IconSymbol size={28} name="house.fill" color={color} />;
@@ -18,6 +20,14 @@ function IconVehicules({ color }: Readonly<{ color: string }>) {
 
 export default function TabLayout() {
   const { colors } = useTheme();
+
+  useFocusEffect(
+    useCallback(() => {
+      secureStorage.getToken().then(token => {
+        if (!token) router.replace('/(auth)/login');
+      });
+    }, []),
+  );
 
   return (
     <Tabs
